@@ -1,0 +1,310 @@
+[
+  {
+    "id": "豬/Wildboar_F_1st_lumbar_vertebra_UD",
+    "file": "豬/Wildboar_F_1st_lumbar_vertebra_UD.ply",
+    "taxon": "豬",
+    "el": "Lumbar vertebra",
+    "side": "",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_F_1st_lumbar_vertebra_UD.stl",
+      "size": 13589384,
+      "mtime": 1792188550252
+    }
+  },
+  {
+    "id": "豬/Wildboar_F_3rd_cervical_vertebra_UD",
+    "file": "豬/Wildboar_F_3rd_cervical_vertebra_UD.ply",
+    "taxon": "豬",
+    "el": "Cervical vertebra",
+    "side": "",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_F_3rd_cervical_vertebra_UD.stl",
+      "size": 11560534,
+      "mtime": 1792188689316
+    }
+  },
+  {
+    "id": "豬/Wildboar_F_1st_thoracic_vertebra_UD",
+    "file": "豬/Wildboar_F_1st_thoracic_vertebra_UD.ply",
+    "taxon": "豬",
+    "el": "Thoracic vertebra",
+    "side": "",
+    "variant": "",
+    "faces": 49999,
+    "src": {
+      "name": "Wildboar_F_1st_thoracic_vertebra_UD.stl",
+      "size": 18990434,
+      "mtime": 1792188599879
+    }
+  },
+  {
+    "id": "豬/Wildboar_F_atlas_UD",
+    "file": "豬/Wildboar_F_atlas_UD.ply",
+    "taxon": "豬",
+    "el": "Atlas",
+    "side": "",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_F_atlas_UD.stl",
+      "size": 13626034,
+      "mtime": 1792188837005
+    }
+  },
+  {
+    "id": "豬/Wildboar_F_axis_UD",
+    "file": "豬/Wildboar_F_axis_UD.ply",
+    "taxon": "豬",
+    "el": "Axis",
+    "side": "",
+    "variant": "",
+    "faces": 49999,
+    "src": {
+      "name": "Wildboar_F_axis_UD.stl",
+      "size": 14559434,
+      "mtime": 1792188876173
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_3rd_metacarpal_L_UD",
+    "file": "豬/Wildboar_M_3rd_metacarpal_L_UD.ply",
+    "taxon": "豬",
+    "el": "Metacarpal",
+    "side": "L",
+    "variant": "III",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_3rd_metacarpal_L_UD.stl",
+      "size": 10482634,
+      "mtime": 1792188989601
+    }
+  },
+  {
+    "id": "豬/Wildboar_F_sacrum_UD",
+    "file": "豬/Wildboar_F_sacrum_UD.ply",
+    "taxon": "豬",
+    "el": "Sacrum",
+    "side": "",
+    "variant": "",
+    "faces": 49997,
+    "src": {
+      "name": "Wildboar_F_sacrum_UD.stl",
+      "size": 20432034,
+      "mtime": 1792188929149
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_4th_metacarpal_L_UD",
+    "file": "豬/Wildboar_M_4th_metacarpal_L_UD.ply",
+    "taxon": "豬",
+    "el": "Metacarpal",
+    "side": "L",
+    "variant": "IV",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_4th_metacarpal_L_UD.stl",
+      "size": 9933584,
+      "mtime": 1792189035418
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_3rd_metatarsal_L_UD",
+    "file": "豬/Wildboar_M_3rd_metatarsal_L_UD.ply",
+    "taxon": "豬",
+    "el": "Metatarsal",
+    "side": "L",
+    "variant": "III",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_3rd_metatarsal_L_UD.stl",
+      "size": 6802184,
+      "mtime": 1792189010167
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_4th_metatarsal_L_UD",
+    "file": "豬/Wildboar_M_4th_metatarsal_L_UD.ply",
+    "taxon": "豬",
+    "el": "Metatarsal",
+    "side": "L",
+    "variant": "IV",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_4th_metatarsal_L_UD.stl",
+      "size": 7472984,
+      "mtime": 1792189057289
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_coxalbone_L_UD",
+    "file": "豬/Wildboar_M_coxalbone_L_UD.ply",
+    "taxon": "豬",
+    "el": "Pelvis",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_coxalbone_L_UD.stl",
+      "size": 12685684,
+      "mtime": 1792189142791
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_calcaneus_L_UD",
+    "file": "豬/Wildboar_M_calcaneus_L_UD.ply",
+    "taxon": "豬",
+    "el": "Calcaneus",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_calcaneus_L_UD.stl",
+      "size": 9226484,
+      "mtime": 1792189110033
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_femur_L_UD",
+    "file": "豬/Wildboar_M_femur_L_UD.ply",
+    "taxon": "豬",
+    "el": "Femur",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_femur_L_UD.stl",
+      "size": 9558384,
+      "mtime": 1792189250355
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_fibula_L_UD",
+    "file": "豬/Wildboar_M_fibula_L_UD.ply",
+    "taxon": "豬",
+    "el": "Fibula",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_fibula_L_UD.stl",
+      "size": 10727384,
+      "mtime": 1792189278852
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_humerus_L_UD",
+    "file": "豬/Wildboar_M_humerus_L_UD.ply",
+    "taxon": "豬",
+    "el": "Humerus",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_humerus_L_UD.stl",
+      "size": 8559784,
+      "mtime": 1792189303225
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_middle_phalanx_hindlimb_L_UD",
+    "file": "豬/Wildboar_M_middle_phalanx_hindlimb_L_UD.ply",
+    "taxon": "豬",
+    "el": "Phalange 2",
+    "side": "",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_middle_phalanx_hindlimb_L_UD.stl",
+      "size": 3515484,
+      "mtime": 1792189362850
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_radius_L_UD",
+    "file": "豬/Wildboar_M_radius_L_UD.ply",
+    "taxon": "豬",
+    "el": "Radius",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_radius_L_UD.stl",
+      "size": 11676884,
+      "mtime": 1792189425494
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_proximal_phalanx_hindlimb_L_UD",
+    "file": "豬/Wildboar_M_proximal_phalanx_hindlimb_L_UD.ply",
+    "taxon": "豬",
+    "el": "Phalange 1",
+    "side": "",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_proximal_phalanx_hindlimb_L_UD.stl",
+      "size": 4752584,
+      "mtime": 1792189395688
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_scapula_L_UD",
+    "file": "豬/Wildboar_M_scapula_L_UD.ply",
+    "taxon": "豬",
+    "el": "Scapula",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_scapula_L_UD.stl",
+      "size": 24529484,
+      "mtime": 1792189485437
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_talus_L_UD",
+    "file": "豬/Wildboar_M_talus_L_UD.ply",
+    "taxon": "豬",
+    "el": "Astragalus",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_talus_L_UD.stl",
+      "size": 7635684,
+      "mtime": 1792189513951
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_tibia_L_UD",
+    "file": "豬/Wildboar_M_tibia_L_UD.ply",
+    "taxon": "豬",
+    "el": "Tibia",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_tibia_L_UD.stl",
+      "size": 9467284,
+      "mtime": 1792189539579
+    }
+  },
+  {
+    "id": "豬/Wildboar_M_ulna_L_UD",
+    "file": "豬/Wildboar_M_ulna_L_UD.ply",
+    "taxon": "豬",
+    "el": "Ulna",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Wildboar_M_ulna_L_UD.stl",
+      "size": 13975784,
+      "mtime": 1792189575101
+    }
+  }
+]
