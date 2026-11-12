@@ -1,0 +1,268 @@
+[
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_2nd_thoracic_vertebra_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_2nd_thoracic_vertebra_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Thoracic vertebra",
+        "side":  "",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_2nd_thoracic_vertebra_UD.stl",
+                    "size":  18833584,
+                    "mtime":  1792185638847
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_3rd_cervical_vertebra_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_3rd_cervical_vertebra_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Cervical vertebra",
+        "side":  "",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_3rd_cervical_vertebra_UD.stl",
+                    "size":  21960084,
+                    "mtime":  1792185696166
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_6th_lumbar_vertebra_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_6th_lumbar_vertebra_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Lumbar vertebra",
+        "side":  "",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_6th_lumbar_vertebra_UD.stl",
+                    "size":  17081584,
+                    "mtime":  1792185746295
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_atlas_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_atlas_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Atlas",
+        "side":  "",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_atlas_UD.stl",
+                    "size":  14635284,
+                    "mtime":  1792185874359
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_axis_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_axis_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Axis",
+        "side":  "",
+        "variant":  "",
+        "faces":  49999,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_axis_UD.stl",
+                    "size":  20535534,
+                    "mtime":  1792185927902
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_calcaneus_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_calcaneus_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Calcaneus",
+        "side":  "L",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_calcaneus_L_UD.stl",
+                    "size":  10879084,
+                    "mtime":  1792185963577
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_coxalbone_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_coxalbone_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Pelvis",
+        "side":  "L",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_coxalbone_L_UD.stl",
+                    "size":  11650984,
+                    "mtime":  1792185995262
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_femur_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_femur_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Femur",
+        "side":  "L",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_femur_L_UD.stl",
+                    "size":  8548784,
+                    "mtime":  1792186199092
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_humerus_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_humerus_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Humerus",
+        "side":  "L",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_humerus_L_UD.stl",
+                    "size":  7359984,
+                    "mtime":  1792186219657
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_metacarpal_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_metacarpal_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Metacarpal",
+        "side":  "L",
+        "variant":  "",
+        "faces":  49999,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_metacarpal_L_UD.stl",
+                    "size":  13536434,
+                    "mtime":  1792186276729
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_metatarsal_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_metatarsal_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Metatarsal",
+        "side":  "L",
+        "variant":  "",
+        "faces":  49999,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_metatarsal_L_UD.stl",
+                    "size":  16770134,
+                    "mtime":  1792186320246
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_middle_phalanx_hindlimb_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_middle_phalanx_hindlimb_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Phalange 2",
+        "side":  "",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_middle_phalanx_hindlimb_ L_UD.stl",
+                    "size":  3629284,
+                    "mtime":  1792186336420
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_proximal_phalanx_hindlimb_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_proximal_phalanx_hindlimb_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Phalange 1",
+        "side":  "",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_proximal_phalanx_hindlimb_ L_UD.stl",
+                    "size":  4817684,
+                    "mtime":  1792186349520
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_radius_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_radius_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Radius",
+        "side":  "L",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_radius_L_UD.stl",
+                    "size":  16212584,
+                    "mtime":  1792186389456
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_sacrum_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_sacrum_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Sacrum",
+        "side":  "",
+        "variant":  "",
+        "faces":  49999,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_sacrum_UD.stl",
+                    "size":  23235334,
+                    "mtime":  1792186448371
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_scapula_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_scapula_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Scapula",
+        "side":  "L",
+        "variant":  "",
+        "faces":  49999,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_scapula_L_UD.stl",
+                    "size":  27723734,
+                    "mtime":  1792186522187
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_talus_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_talus_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Astragalus",
+        "side":  "L",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_talus_L_UD.stl",
+                    "size":  7797884,
+                    "mtime":  1792186553689
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_tibia_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_tibia_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Tibia",
+        "side":  "L",
+        "variant":  "",
+        "faces":  50000,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_tibia_L_UD.stl",
+                    "size":  8267284,
+                    "mtime":  1792186577260
+                }
+    },
+    {
+        "id":  "臺灣梅花鹿/Japanesesikadeer_M_ulna_L_UD",
+        "file":  "臺灣梅花鹿/Japanesesikadeer_M_ulna_L_UD.ply",
+        "taxon":  "臺灣梅花鹿",
+        "el":  "Ulna",
+        "side":  "L",
+        "variant":  "",
+        "faces":  49999,
+        "src":  {
+                    "name":  "Japanesesikadeer_M_ulna_L_UD.stl",
+                    "size":  11834034,
+                    "mtime":  1792186607225
+                }
+    }
+]
