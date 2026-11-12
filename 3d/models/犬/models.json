@@ -1,0 +1,198 @@
+[
+  {
+    "id": "犬/Dog_F_atlas_UD",
+    "file": "犬/Dog_F_atlas_UD.ply",
+    "taxon": "犬",
+    "el": "Atlas",
+    "side": "",
+    "variant": "",
+    "faces": 49999,
+    "src": {
+      "name": "Dog_F_atlas_UD.stl",
+      "size": 12548434,
+      "mtime": 1792179090920
+    }
+  },
+  {
+    "id": "犬/Dog_F_axis_UD",
+    "file": "犬/Dog_F_axis_UD.ply",
+    "taxon": "犬",
+    "el": "Axis",
+    "side": "",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_axis_UD.stl",
+      "size": 13622534,
+      "mtime": 1792179128027
+    }
+  },
+  {
+    "id": "犬/Dog_F_calcaneus_L_UD",
+    "file": "犬/Dog_F_calcaneus_L_UD.ply",
+    "taxon": "犬",
+    "el": "Calcaneus",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_calcaneus_L_UD.stl",
+      "size": 6434984,
+      "mtime": 1792179150375
+    }
+  },
+  {
+    "id": "犬/Dog_F_cranium_UD",
+    "file": "犬/Dog_F_cranium_UD.ply",
+    "taxon": "犬",
+    "el": "Cranium",
+    "side": "",
+    "variant": "",
+    "faces": 49990,
+    "src": {
+      "name": "Dog_F_cranium_UD.stl",
+      "size": 46154284,
+      "mtime": 1792179330862
+    }
+  },
+  {
+    "id": "犬/Dog_F_femur_L_UD",
+    "file": "犬/Dog_F_femur_L_UD.ply",
+    "taxon": "犬",
+    "el": "Femur",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_femur_L_UD.stl",
+      "size": 7661184,
+      "mtime": 1792179370302
+    }
+  },
+  {
+    "id": "犬/Dog_F_humerus_L_UD",
+    "file": "犬/Dog_F_humerus_L_UD.ply",
+    "taxon": "犬",
+    "el": "Humerus",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_humerus_L_UD.stl",
+      "size": 9279984,
+      "mtime": 1792179394294
+    }
+  },
+  {
+    "id": "犬/Dog_F_mandible_L_UD",
+    "file": "犬/Dog_F_mandible_L_UD.ply",
+    "taxon": "犬",
+    "el": "Mandible",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_mandible_L_UD.stl",
+      "size": 14471284,
+      "mtime": 1792179430914
+    }
+  },
+  {
+    "id": "犬/Dog_F_sacrum_UD",
+    "file": "犬/Dog_F_sacrum_UD.ply",
+    "taxon": "犬",
+    "el": "Sacrum",
+    "side": "",
+    "variant": "",
+    "faces": 49999,
+    "src": {
+      "name": "Dog_F_sacrum_UD.stl",
+      "size": 13687434,
+      "mtime": 1792179488495
+    }
+  },
+  {
+    "id": "犬/Dog_F_radius_L_UD",
+    "file": "犬/Dog_F_radius_L_UD.ply",
+    "taxon": "犬",
+    "el": "Radius",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_radius_L_UD.stl",
+      "size": 7443584,
+      "mtime": 1792179454460
+    }
+  },
+  {
+    "id": "犬/Dog_F_talus_L_UD",
+    "file": "犬/Dog_F_talus_L_UD.ply",
+    "taxon": "犬",
+    "el": "Astragalus",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_talus_L_UD.stl",
+      "size": 4874534,
+      "mtime": 1792179543557
+    }
+  },
+  {
+    "id": "犬/Dog_F_tibia_L_UD",
+    "file": "犬/Dog_F_tibia_L_UD.ply",
+    "taxon": "犬",
+    "el": "Tibia",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_tibia_L_UD.stl",
+      "size": 8489534,
+      "mtime": 1792179566203
+    }
+  },
+  {
+    "id": "犬/Dog_F_ulna_L_UD",
+    "file": "犬/Dog_F_ulna_L_UD.ply",
+    "taxon": "犬",
+    "el": "Ulna",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_ulna_L_UD.stl",
+      "size": 17336584,
+      "mtime": 1792179609081
+    }
+  },
+  {
+    "id": "犬/Dog_F_scapula_L_UD",
+    "file": "犬/Dog_F_scapula_L_UD.ply",
+    "taxon": "犬",
+    "el": "Scapula",
+    "side": "L",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_scapula_L_UD.stl",
+      "size": 13074734,
+      "mtime": 1792179526004
+    }
+  },
+  {
+    "id": "犬/Dog_F_coxalbone_UD",
+    "file": "犬/Dog_F_coxalbone_UD.ply",
+    "taxon": "犬",
+    "el": "Pelvis",
+    "side": "",
+    "variant": "",
+    "faces": 50000,
+    "src": {
+      "name": "Dog_F_coxalbone_UD.stl",
+      "size": 12876084,
+      "mtime": 1794516599911
+    }
+  }
+]
