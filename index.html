@@ -100,12 +100,20 @@ section.card h2 .ref+.ref{margin-left:14px}
 .ref{font-size:13px;font-weight:400;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;padding:0}
 
 .meas{display:flex;flex-wrap:wrap;gap:8px}
-.mc{display:flex;flex-direction:column;gap:2px;width:84px}
+.mc{display:flex;flex-direction:column;gap:2px;width:100px}
 .mc .cd{font-family:var(--mono);font-size:12.5px;display:flex;justify-content:space-between;align-items:center;gap:2px}
 .mc .cd .x{border:none;background:none;color:var(--muted);padding:0 2px;cursor:pointer;font-size:13px}
 .mc input[type=text]{width:100%;font-family:var(--mono);text-align:right}
 .mc .pl{font-size:11.5px;color:var(--muted);display:flex;gap:3px;align-items:center}
 .mc.custom .cd span{color:var(--warn)}
+/* 測量值與保存區位：m-off 不符且未填（淡色）；m-chk 不符但已填（恢復正常，等確認）；符合的維持正常樣式 */
+
+.mc.m-off .cd span{color:#b9b2a6}
+.mc.m-off input[type=text]{opacity:.5}
+.mc.m-chk .cd span::after{content:" ?";color:var(--warn);font-weight:700}
+.mcin{position:relative}
+.mcin input[type=text]{padding-right:2.4em}
+.mcin .unit{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:11.5px;color:var(--muted);pointer-events:none}
 .addm{display:flex;flex-direction:column;justify-content:flex-end;gap:2px}
 .addm input{width:84px;font-family:var(--mono)}
 .teethgrid{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
@@ -137,6 +145,10 @@ table.mws td:first-child{font-weight:700;text-align:center}
 .recent li:hover{background:#faf6ee}
 .recent li b{font-family:var(--mono);font-weight:600;white-space:nowrap}
 .recent li span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 勾了「待查核」的紀錄：底色標亮、流水號前加 ＊ */
+.recent li.chk-on{background:var(--hl);border-left:3px solid #e0b93a;padding-left:6px}
+.recent li.chk-on b{color:var(--warn)}
+.recent li em.flag{font-style:normal}
 
 .savebar{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--panel);border-top:1px solid var(--line2);box-shadow:0 -4px 14px rgba(40,30,10,.07);padding-bottom:env(safe-area-inset-bottom,0px)}
 .savein{max-width:1360px;margin:0 auto;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -194,6 +206,14 @@ dialog::backdrop{background:rgba(30,25,15,.45)}
 .sci{font-size:12px;color:var(--muted);font-style:italic;min-height:1.2em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .en{color:var(--muted);font-size:.88em;font-weight:400}
 .cfmark{margin-left:6px}
+.sub-h{display:flex;align-items:center;gap:6px}
+.sub-cf{font-weight:400;margin-left:14px}   /* 子標題後的「疑似」：不跟著標題變粗體 */
+.z3view{position:relative;height:320px;margin-top:8px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#f6f3ee}
+.z3msg{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px;pointer-events:none}
+.z3msg[hidden]{display:none}
+.seg label:has(input:disabled){color:#b9b2a6;cursor:not-allowed}
+.lg{display:inline-block;width:11px;height:11px;border-radius:99px;vertical-align:-1px;margin:0 2px 0 8px}
+@media (max-width:640px){.z3view{height:260px}}
 .zsw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:1px}
 
 /* 觸控螢幕（平板、手機）：加大可點選的區域；輸入框字級 16px，避免 iOS 點選時自動放大畫面 */
@@ -214,7 +234,7 @@ dialog::backdrop{background:rgba(30,25,15,.45)}
   .teethgrid label{min-width:52px;padding:8px 8px;font-size:15px}
   .parts{gap:6px}
   .parts label{padding:8px 12px;font-size:15px}
-  .mc{width:96px}
+  .mc{width:112px}
   .mc .pl{font-size:13px;min-height:28px}
   .mc .pl input{width:20px;height:20px}
   .addm input{width:96px}
@@ -304,11 +324,23 @@ dialog::backdrop{background:rgba(30,25,15,.45)}
       <button class="small" id="zAll" type="button">全選</button><button class="small" id="zNone" type="button">清除</button>
       <button type="button" class="ref" id="zoneRef">分區圖</button>
     </div>
+    <div id="z3Wrap" class="hidden" style="margin-top:10px">
+      <div class="row">
+        <span class="rowlab">3D 點選</span>
+        <div class="seg" id="z3Layer"></div>
+        <select id="z3Variant" class="hidden" aria-label="模型分型"></select>
+        <span class="spacer" style="flex:1"></span>
+        <button class="small" type="button" id="z3Reset">重設視角</button>
+      </div>
+      <div class="z3view" id="z3View"><div class="z3msg" id="z3Msg">載入 3D 模型中…</div></div>
+      <div class="note" id="z3Note"></div>
+    </div>
     <div class="row" id="fuseRow" style="margin-top:10px">
       <span class="rowlab">癒合</span>
       <div class="f"><label for="fp" id="fpLab">近端</label><select id="fp" data-f="fp" class="w10"></select></div>
       <div class="f"><label for="fd" id="fdLab">遠端</label><select id="fd" data-f="fd" class="w10"></select></div>
     </div>
+    <div class="note" id="fuseHint"></div>
   </section>
 
   <section class="card hidden" id="secTeeth">
@@ -322,37 +354,34 @@ dialog::backdrop{background:rgba(30,25,15,.45)}
   </section>
 
   <section class="card hidden" id="secMeas">
-    <h2>測量 <span class="muted">mm；von den Driesch（1976）代碼。破損而只能量到最小值時勾「+」</span><span class="spacer"></span><button type="button" class="ref hidden" id="measRef">測量說明</button></h2>
+    <h2>測量 <span class="muted">單位: mm；依據von den Driesch（1976）代碼。破損而只能量到最小值時勾「+」</span><span class="spacer"></span><button type="button" class="ref hidden" id="measRef">測量說明</button></h2>
     <div class="meas" id="measBox"></div>
   </section>
 
   <section class="card">
     <h2>表面痕跡</h2>
-    <div class="sub-h" style="margin-top:0">燒炙</div>
+    <div class="sub-h" style="margin-top:0">燒炙<label class="chk cfmark sub-cf"><input type="checkbox" data-f="burn.cf" id="burnCf">疑似 cf.</label></div>
     <div class="row">
       <div class="f"><label for="burnR">範圍</label><select id="burnR" data-f="burn.range" class="w6"><option>無</option><option>部分</option><option>全</option></select></div>
       <div class="f"><span class="lb">顏色（可複選）</span><div class="row" id="burnC">
         <label class="chk"><input type="checkbox" data-arr="burn.colors" value="黑">黑</label>
         <label class="chk"><input type="checkbox" data-arr="burn.colors" value="黑褐">黑褐</label>
         <label class="chk"><input type="checkbox" data-arr="burn.colors" value="褐">褐</label>
-        <label class="chk"><input type="checkbox" data-arr="burn.colors" value="灰白">灰白</label>
-        <label class="chk cfmark"><input type="checkbox" data-f="burn.cf" id="burnCf">疑似 cf.</label></div></div>
+        <label class="chk"><input type="checkbox" data-arr="burn.colors" value="灰白">灰白</label></div></div>
     </div>
-    <div class="sub-h">切砍痕</div>
+    <div class="sub-h">切砍痕<label class="chk cfmark sub-cf"><input type="checkbox" data-f="cut.cf" id="cutCf">疑似 cf.</label></div>
     <div class="row">
       <label class="chk"><input type="checkbox" data-arr="cut.types" value="切">切</label>
       <label class="chk"><input type="checkbox" data-arr="cut.types" value="砍">砍</label>
       <label class="chk"><input type="checkbox" data-arr="cut.types" value="鑽">鑽</label>
       <label class="chk"><input type="checkbox" data-arr="cut.types" value="鋸">鋸</label>
-      <label class="chk cfmark"><input type="checkbox" data-f="cut.cf" id="cutCf">疑似 cf.</label>
     </div>
     <div class="row" style="margin-top:6px" id="cutWhere"></div>
-    <div class="sub-h">啃咬痕</div>
+    <div class="sub-h">啃咬痕<label class="chk cfmark sub-cf"><input type="checkbox" data-f="gnaw.cf" id="gnawCf">疑似 cf.</label></div>
     <div class="row">
       <label class="chk"><input type="checkbox" data-arr="gnaw.types" value="啃咬">啃咬（食肉類）</label>
       <label class="chk"><input type="checkbox" data-arr="gnaw.types" value="囓咬">囓咬（囓齒類）</label>
       <label class="chk"><input type="checkbox" data-arr="gnaw.types" value="不明啃咬">不明啃咬</label>
-      <label class="chk cfmark"><input type="checkbox" data-f="gnaw.cf" id="gnawCf">疑似 cf.</label>
     </div>
     <div class="row" style="margin-top:6px" id="gnawWhere"></div>
   </section>
@@ -587,6 +616,49 @@ const ELEMENTS = [
   ["Shell", "龜殼", "R", { only: { 目: ["龜鱉目"] } }], ["Carapace", "背甲", "RC", {}], ["Chela", "螯", "C", {}],
 ].map(([id, zh, cls, o]) => ({ id, zh, cls, ...o }));
 const EL = new Map(ELEMENTS.map((e) => [e.id, e]));
+/* 癒合紀錄：只有這些部位（肢骨、肩胛骨）需要記錄。p＝近端的 zone、d＝遠端的 zone；
+   保存的區位至少包含其中一個時，才出現該端的癒合欄位。之後要加入脊椎類時，在這裡加一行即可 */
+/* 測量值建議的保存區位（哺乳類；依「測量與區位對照_草稿.csv」）。寫法：列出的區位都要保存；"all"＝全部區位。
+   只做提醒，不強制：不符合的淡色但仍可填寫（填了會提醒確認區位）；符合的與沒有列出的維持正常。 */
+const MEAS_ZONES = {
+  Atlas: { GB: "all", GL: "all", BFcr: "7,8", BFcd: "1,2", H: "all" },
+  Axis: { LCDe: "1,2,3,4,5,6", LAPa: "3,4,5,6", BFcr: "1,2", BPacd: "3,4,5,6", SBV: "1,2,7,8" },
+  Sacrum: { GL: "all", PL: "1,2,5,6,7,8", GB: "1,3,4", BFcr: "1", HFcr: "1" },
+  Scapula: { GLP: "1,2", LG: "1", BG: "1", SLC: "3,4" },
+  Humerus: { GL: "all", GLC: "all", Bp: "1,2", Dp: "1,2", SD: "3,4,5,6", Bd: "7,8", BT: "7,8" },
+  Radius: { GL: "all", Bp: "1,2", BFp: "1,2|僅適用於馬科", SD: "3,4,5,6", Bd: "7,8", BFd: "7,8|僅適用於馬科" },
+  Ulna: { GL: "all", LO: "1,2", DPA: "2,3", SDO: "2", BPC: "3" },
+  Metacarpal: { GL: "all", Bp: "1,2", Dp: "1,2", SD: "3,4,5,6", Bd: "7,8", Dd: "7,8" },
+  Pelvis: { LA: "3,4,5,7", LAR: "3,4,5,7|僅適用於馬科", SH: "2", SB: "2" },
+  Femur: { GL: "all", GLC: "1,3,4,5,6,7,8", Bp: "1,2", DC: "1", SD: "3,4,5,6", Bd: "7,8" },
+  Tibia: { GL: "all", Bp: "1,2", SD: "3,4,5,6", Bd: "7,8", Dd: "7,8" },
+  Fibula: { GL: "all" },
+  Astragalus: { GLl: "2,4,6,8", GLm: "1,3,5,7", Dl: "all", Dm: "all", Bd: "5,6,7,8" },
+  Calcaneus: { GL: "1,3,4,5,6,7,8", GB: "all" },
+  "Os Centrotarsale": { GB: "all" },
+  Metatarsal: { GL: "all", Bp: "1,2", Dp: "1,2", SD: "3,4,5,6", Bd: "7,8", Dd: "7,8" },
+  Metapodial: { GL: "all", Bp: "1,2", Dp: "1,2", SD: "3,4,5,6", Bd: "7,8", Dd: "7,8" },
+  "Phalange 1": { GLpe: "all", Bp: "7,8", SD: "3,4,5,6", Bd: "1,2" },
+  "Phalange 2": { GL: "all", Bp: "7,8", SD: "3,4,5,6", Bd: "1,2" },
+};
+/* 這個測量值的區位建議：null＝沒有規則；否則 { ok: 是否符合, need: 需要的區位, note: 附註 } */
+function measHint(C, code) {
+  const raw = C.mam && C.zn && C.el ? (MEAS_ZONES[C.el.id] || {})[code] : null;
+  if (!raw) return null;
+  const [rule, note = ""] = raw.split("|");
+  const need = rule === "all" ? Array.from({ length: C.zn }, (_, i) => i + 1) : rule.split(",").map(Number);
+  return { ok: need.every((z) => F.zones.includes(z)), need, all: rule === "all", note };
+}
+const hintText = (h) => `建議保存區位：${h.all ? "全部" : h.need.join("、")}${h.note ? "（" + h.note + "）" : ""}`;
+const LIMB_PD = { p: [1, 2], d: [7, 8] };
+const FUSE_ZONES = {
+  Humerus: LIMB_PD, Radius: LIMB_PD, Ulna: LIMB_PD, "Radius + Ulna (fused)": LIMB_PD,
+  Femur: LIMB_PD, Tibia: LIMB_PD, Fibula: LIMB_PD,
+  Metacarpal: LIMB_PD, Metatarsal: LIMB_PD, Metapodial: LIMB_PD,
+  // 指（趾）節骨：Serjeantson 的區位編號近遠端和其他肢骨相反（近端是 7、8）；遠端沒有骨骺，只記錄近端癒合
+  "Phalange 1": { p: [7, 8] }, "Phalange 2": { p: [7, 8] },
+  Scapula: { p: [1, 2], d: [5, 8] },
+};
 const RENAMED = { "Phalange (indet.)": "Phalange (fragment)", "Phalange(殘件)": "Phalange (fragment)", "Antler(鹿科)": "Antler" };
 const VERT_OLD = { 頸椎: "Cervical vertebra", 胸椎: "Thoracic vertebra", 腰椎: "Lumbar vertebra" };
 /* 頭骨可辨識部位：只能選彼此相連的骨塊 */
@@ -937,7 +1009,7 @@ function blank(ctx) {
     burn: { range: "無", colors: [], cf: false }, cut: { types: [], zones: [], loc: "", cf: false }, gnaw: { types: [], zones: [], loc: "", cf: false },
     site: "",
     path: "", refitText: "", photo: false, photos: [], check: false, checkNote: "", note: "",
-    frag: false, qty: "1", wt: "",
+    frag: false, qty: "1", wt: "", model3d: "",
   };
 }
 function migrate(r) {
@@ -1238,7 +1310,10 @@ function ctxOf() {
     zn = zk ? 8 : 0;
   }
   if (parts && ps.includes("Occipital")) { zk = "M"; zn = 8; }
-  const fuse = !!(el && el.fu && mam);
+  // 癒合：只有 FUSE_ZONES 裡的部位（肢骨、肩胛骨）才記錄；保存的區位包含近端（或遠端）的 zone 時，才出現近端（或遠端）癒合
+  const fz = mam && el ? FUSE_ZONES[el.id] : null;
+  const hasEnd = (end) => !!(fz && fz[end] && (zn ? F.zones.some((z) => fz[end].includes(z)) : true));
+  const fuseP = hasEnd("p"), fuseD = hasEnd("d"), fuse = fuseP || fuseD;
   let teeth = el && el.teeth && mam ? el.teeth : null;
   if (parts && !ps.includes("Maxilla") && !ps.includes("Premaxilla")) teeth = null;
   let mkey = null, std = [];
@@ -1253,7 +1328,7 @@ function ctxOf() {
   let jaw = "";
   if (teeth === "upper" || teeth === "lower") jaw = teeth; else if (teeth) jaw = F.jaw;
   const ws = wearSys(F.tax);
-  return { el, K, mam, zn, zk, fuse, teeth, jaw, mkey, std, custom, hasC, parts, ps, ws };
+  return { el, K, mam, zn, zk, fuse, fuseP, fuseD, fz, teeth, jaw, mkey, std, custom, hasC, parts, ps, ws };
 }
 
 function render() {
@@ -1306,6 +1381,12 @@ function render() {
     el ? `${esc(el.zh)} <span class="en">${esc(el.id)}</span>` : "";
   // 保存部位與癒合
   $("secZone").classList.toggle("hidden", !(C.zn || C.fuse));
+  $("fp").closest(".f").classList.toggle("hidden", !C.fuseP);
+  $("fd").closest(".f").classList.toggle("hidden", !C.fuseD);
+  const fzText = (a) => a.join("、");
+  const ends = C.fz ? [C.fz.p && `近端（${fzText(C.fz.p)}）`, C.fz.d && `遠端（${fzText(C.fz.d)}）`].filter(Boolean) : [];
+  $("fuseHint").textContent = C.fz && C.zn && !((C.fuseP || !C.fz.p) && (C.fuseD || !C.fz.d))
+    ? `保存的區位包含${ends.join("或")}時，才會出現${ends.length > 1 ? "該端的" : ""}癒合欄位。` : "";
   $("zoneRow").classList.toggle("hidden", !C.zn);
   $("fuseRow").classList.toggle("hidden", !C.fuse);
   F.zones = F.zones.filter((z) => z <= (C.zn || 8));
@@ -1317,10 +1398,15 @@ function render() {
   for (const id of ["fp", "fd"]) $(id).innerHTML = FUSION.map(([v, t]) => `<option value="${v}" ${F[id] === v ? "selected" : ""}>${t}</option>`).join("");
   renderTeeth(C);
   renderMeas(C);
+  // 切砍、啃咬的位置只能從「保存部位」已選的 zone 中挑選
   for (const [k, box] of [["cut", "cutWhere"], ["gnaw", "gnawWhere"]]) {
     const on = F[k].types.length > 0;
+    if (C.zn) F[k].zones = F[k].zones.filter((z) => F.zones.includes(z));
     $(box).innerHTML = !on ? "" : C.zn
-      ? `<span class="rowlab">位置（zone）</span><div class="zones">${Array.from({ length: C.zn }, (_, i) => i + 1).map((z) => `<label><input type="checkbox" data-mz="${k}" value="${z}" ${F[k].zones.includes(z) ? "checked" : ""}>${z}</label>`).join("")}</div>`
+      ? `<span class="rowlab">位置（zone）</span>` + (F.zones.length
+        ? `<div class="zones">${F.zones.slice().sort((a, b) => a - b).map((z) => `<label><input type="checkbox" data-mz="${k}" value="${z}" ${F[k].zones.includes(z) ? "checked" : ""}>${z}</label>`).join("")}</div>` +
+          `<button type="button" class="small" data-go3d="${k}" hidden>在 3D 模型上標示</button>`
+        : `<span class="note">請先在「保存部位與癒合」選擇保存的 zone，這裡才能選位置。</span>`)
       : `<div class="f grow"><label for="${k}Loc">位置</label><input id="${k}Loc" data-f="${k}.loc" value="${esc(F[k].loc)}" autocomplete="off" placeholder="${el ? "此部位沒有 zone，請簡述位置" : "先選骨骼部位，有 zone 的部位可用 zone 記錄"}"></div>`;
   }
   const noBurn = F.burn.range === "無";
@@ -1333,6 +1419,7 @@ function render() {
   renderPathMsg();
   $("qtyMsg").textContent = F.frag ? "碎片：可輸入 100+ 或 ~300 這類估計值。" : "預設為 1；只能輸入整數。只有其他資訊完全相同時才合併計數；估計值請先勾「碎片」。";
   preview();
+  sync3D(C);
 }
 
 const needPathPhoto = () => !!(F.path || "").trim() && !F.photos.length && !F.photo;
@@ -1386,10 +1473,14 @@ function teethFor(C) {
   }
   return al;
 }
-function mcell(code, v, plus, attrs, custom, key) {
+/* 測量值一律顯示到小數點後兩位（資料裡只存數字，不含單位） */
+const fmt2 = (v) => (isNum(v) ? (+v).toFixed(2) : v ?? "");
+/* hint：區位建議（measHint）。不符合且還沒填＝淡色（仍可填寫）；符合的維持正常 */
+function mcell(code, v, plus, attrs, custom, key, hint) {
   const bad = v && !isNum(v);
-  return `<div class="mc${custom ? " custom" : ""}"><div class="cd"><span>${esc(code)}</span>${custom ? `<button type="button" class="x" title="從清單移除這個自訂項目" data-rmkey="${esc(key)}" data-rmcode="${esc(code)}">×</button>` : ""}</div>
-    <input type="text" inputmode="decimal" autocomplete="off" ${attrs} value="${esc(v ?? "")}" class="${bad ? "bad" : ""}">
+  const cls = hint && !hint.ok ? (v ? " m-chk" : " m-off") : "";
+  return `<div class="mc${custom ? " custom" : ""}${cls}" ${hint ? `title="${esc(hintText(hint))}"` : ""}><div class="cd"><span>${esc(code)}</span>${custom ? `<button type="button" class="x" title="從清單移除這個自訂項目" data-rmkey="${esc(key)}" data-rmcode="${esc(code)}">×</button>` : ""}</div>
+    <div class="mcin"><input type="text" inputmode="decimal" autocomplete="off" ${attrs} value="${esc(fmt2(v))}" class="${bad ? "bad" : ""}"><span class="unit">mm</span></div>
     <label class="pl"><input type="checkbox" ${attrs.replace("data-tm", "data-tp").replace("data-m=", "data-p=")} ${plus ? "checked" : ""}>+</label></div>`;
 }
 const addCell = (key) => `<div class="addm"><input type="text" placeholder="新代碼" data-addkey="${esc(key)}" autocomplete="off"><button type="button" class="small" data-addbtn="${esc(key)}">＋ 新增項目</button></div>`;
@@ -1400,9 +1491,12 @@ function renderMeas(C) {
   const show = !!C.el && C.el.teeth !== "tooth";
   $("secMeas").classList.toggle("hidden", !show);
   if (!show) return;
-  $("measBox").innerHTML = C.std.map((c) => mcell(c, F.meas[c], F.measPlus[c], `data-m="${esc(c)}"`, false))
+  // 依保存區位提醒（不強制）：不符合的淡色，仍可填寫
+  const hints = C.std.map((c) => measHint(C, c));
+  $("measBox").innerHTML = C.std.map((c, i) => mcell(c, F.meas[c], F.measPlus[c], `data-m="${esc(c)}"`, false, null, hints[i]))
     .concat(C.custom.map((c) => mcell(c, F.meas[c], F.measPlus[c], `data-m="${esc(c)}"`, true, C.mkey))).join("") + addCell(C.mkey) +
-    (C.std.length ? "" : `<span class="note" style="align-self:center">這個部位沒有預設項目，需要時可自行新增。</span>`);
+    (C.std.length ? "" : `<span class="note" style="align-self:center">這個部位沒有預設項目，需要時可自行新增。</span>`) +
+    (hints.some((h) => h && !h.ok) ? `<div class="note" style="flex-basis:100%"><span style="color:#b9b2a6">淡色</span>的項目和保存區位不符，仍可填寫（填入時會提醒確認）。把游標移到項目上可看建議的區位。</div>` : "");
 }
 
 /* 動態區的事件 */
@@ -1411,8 +1505,8 @@ $("form").addEventListener("change", (e) => {
   if (t.name === "side") { F.side = t.value; $("sideSeg").classList.remove("bad"); preview(); }
   else if (t.name === "jaw") { F.jaw = t.value; render(); }
   else if (t.dataset.part) { const k = t.dataset.part; F.parts = t.checked ? CRANIAL.map(([x]) => x).filter((x) => x === k || F.parts.includes(x)) : F.parts.filter((x) => x !== k); render(); }
-  else if (t.dataset.zone) { const z = +t.dataset.zone; F.zones = t.checked ? [...new Set(F.zones.concat(z))] : F.zones.filter((x) => x !== z); preview(); }
-  else if (t.dataset.mz) { const k = t.dataset.mz, z = +t.value; F[k].zones = t.checked ? [...new Set(F[k].zones.concat(z))] : F[k].zones.filter((x) => x !== z); preview(); }
+  else if (t.dataset.zone) { toggleZone(+t.dataset.zone); render(); }   // 不相連時 render 會把勾選還原
+  else if (t.dataset.mz) { const k = t.dataset.mz, z = +t.value; F[k].zones = t.checked ? [...new Set(F[k].zones.concat(z))] : F[k].zones.filter((x) => x !== z); render(); }
   else if (t.dataset.tooth) {
     const tt = t.dataset.tooth;
     if (t.checked) F.teeth.push({ t: tt, wear: "", calc: false, leh: false, meas: {}, plus: {} }); else F.teeth = F.teeth.filter((x) => x.t !== tt);
@@ -1420,6 +1514,23 @@ $("form").addEventListener("change", (e) => {
   } else if (t.dataset.tf) { const T = F.teeth[+t.dataset.ti]; T[t.dataset.tf] = t.type === "checkbox" ? t.checked : t.value; preview(); }
   else if (t.dataset.tp) { F.teeth[+t.dataset.ti].plus[t.dataset.tp] = t.checked; }
   else if (t.dataset.p) { F.measPlus[t.dataset.p] = t.checked; }
+});
+/* 測量值填完（離開欄位）時：補成小數點後兩位；和保存區位不符時提醒確認（仍可填寫） */
+$("form").addEventListener("change", (e) => {
+  const t = e.target;
+  if (!(t.dataset.m || t.dataset.tm) || t.type === "checkbox") return;
+  if (isNum(t.value)) {
+    t.value = fmt2(t.value);
+    if (t.dataset.m) F.meas[t.dataset.m] = t.value; else F.teeth[+t.dataset.ti].meas[t.dataset.tm] = t.value;
+  }
+  if (t.dataset.m) {
+    const h = measHint(ctxOf(), t.dataset.m), cell = t.closest(".mc");
+    if (h && !h.ok && cell) {
+      cell.classList.toggle("m-off", !t.value.trim()); cell.classList.toggle("m-chk", !!t.value.trim());
+      if (t.value.trim()) toast(`${t.dataset.m}：${hintText(h)}，請確認保存區位`);
+    }
+    preview();
+  }
 });
 $("form").addEventListener("input", (e) => {
   const t = e.target;
@@ -1530,6 +1641,164 @@ $("photos").addEventListener("click", async (e) => {
 });
 $("phClose").onclick = () => $("phDlg").close();
 
+/* ============================================================== 3D 骨骼模型 */
+/* app/3d 有模型資料時才啟用（沒有上傳 3d 資料夾時，記錄工具和試用版一樣，也不會載入任何 3D 程式）。
+   3d/models/index.json：有哪些物種；3d/models/<物種>/models.json、zones.json：模型清單與 zone 範圍（由後台的 zone_editor.html 設定）。
+   物種沒有自己的模型時，借用同屬、再來同科的模型。
+   只有一個 3D 模型（在「保存部位與癒合」），用圖層切換點選的對象：保存部位／切砍痕／啃咬痕。三種資訊同時顯示：
+   保存的區位實心填色；切砍、啃咬的位置在號碼旁加紅色「切」、藍色「咬」，切換到該圖層時那些區塊也改用同色填滿。 */
+const M3 = { index: null, share: [], sp: new Map(), gen: 0, adj: null, adjKey: "", layer: "zones" };
+const P3 = { wrap: "z3Wrap", view: "z3View", msg: "z3Msg", note: "z3Note", V: null, key: "", hl: "", model: null };
+const LAYERS = { zones: { name: "保存部位" }, cut: { name: "切砍痕", text: "切", color: "#c0392b", hex: 0xc0392b }, gnaw: { name: "啃咬痕", text: "咬", color: "#2f6fb0", hex: 0x2f6fb0 } };
+async function init3D() {
+  try { const r = await fetch("3d/models/index.json"); if (r.ok) M3.index = await r.json(); } catch (e) { /* 沒有 3D 資料 */ }
+  // 共用對照表（在 zone 設定工具的「共用設定」編輯）：哪些分類借用哪些物種的模型
+  if (M3.index) try { const r = await fetch("3d/models/share.json"); if (r.ok) M3.share = (await r.json()).rules || []; } catch (e) { /* 沒有對照表 */ }
+}
+const spData = (name) => {
+  if (!M3.sp.has(name)) M3.sp.set(name, (async () => {
+    const base = "3d/models/" + encodeURIComponent(name) + "/";
+    const models = await (await fetch(base + "models.json")).json();
+    let zones = {}; try { zones = (await (await fetch(base + "zones.json")).json()).models || {}; } catch (e) { /* 還沒有設定 */ }
+    return { models, zones };
+  })().catch(() => ({ models: [], zones: {} })));
+  return M3.sp.get(name);
+};
+/* 這筆紀錄可以用哪些物種的模型（level 0 = 自己的模型，其他 = 借用）：
+   同物種 → 依分類由近到遠（種 → 屬 → 科 → 目 → 綱）；同一層級時，共用對照表（share.json）指定的優先，再來是自動的同屬、同科 */
+function spCandidates(tax) {
+  if (!M3.index) return [];
+  const have = new Set((M3.index.species || []).map((s) => s.name)), cand = [];
+  if (have.has(lowest(tax))) cand.push({ name: lowest(tax), depth: 9, pri: 0 });
+  for (const r of M3.share || []) {
+    const d = r.rank >= 0 ? (tax[r.rank] === r.taxon ? r.rank : -1) : tax.indexOf(r.taxon);
+    if (d >= 0) (r.use || []).forEach((n, i) => cand.push({ name: n, depth: d, pri: 1, i }));
+  }
+  for (const s of M3.index.species || []) {
+    const node = NODES.find((n) => n.name === s.name && n.rank >= 3) || NODES.find((n) => n.name === s.name);
+    const p = node ? node.path : null;
+    const d = p && tax[3] && p[3] === tax[3] ? 3 : p && tax[2] && p[2] === tax[2] ? 2 : -1;
+    if (d >= 0) cand.push({ name: s.name, depth: d, pri: 2, i: 0 });
+  }
+  cand.sort((a, b) => b.depth - a.depth || a.pri - b.pri || a.i - b.i);
+  const out = [];
+  for (const c of cand) if (have.has(c.name) && !out.some((o) => o.name === c.name)) out.push({ name: c.name, level: c.depth === 9 ? 0 : 5 - c.depth });
+  return out;
+}
+/* 找這個部位、已設定 zone 的模型；同一部位有多個分型（例如豬的掌骨 III、IV）時一起回傳 */
+async function find3D(tax, elId) {
+  for (const c of spCandidates(tax)) {
+    const d = await spData(c.name);
+    const ms = d.models.filter((m) => m.el === elId && d.zones[m.id] && d.zones[m.id].faces === m.faces);
+    if (ms.length) return { sp: c.name, level: c.level, models: ms, zones: d.zones };
+  }
+  return null;
+}
+function close3D() {
+  M3.gen++; P3.key = ""; P3.hl = ""; P3.model = null;
+  if (P3.V) { P3.V.dispose(); P3.V = null; }
+  $(P3.wrap).classList.add("hidden");
+  document.querySelectorAll("[data-go3d]").forEach((b) => (b.hidden = true));
+}
+/* 圖層：切砍、啃咬要先勾選痕跡類型，且保存部位已選了 zone 才能用 */
+const layerReady = (k) => k === "zones" || (F[k].types.length > 0 && F.zones.length > 0);
+/* 切換圖層並捲到 3D 模型（表面痕跡區塊的「在 3D 模型上標示」按鈕用） */
+function goLayer(k) {
+  M3.layer = k; P3.hl = "";
+  sync3D(ctxOf());
+  window.scrollTo({ top: $(P3.wrap).getBoundingClientRect().top + window.scrollY - 90, behavior: "smooth" });
+}
+/* 每次表單重畫後呼叫：決定要不要顯示 3D、該用哪個模型，並同步三種資訊 */
+async function sync3D(C) {
+  if (!M3.index || !C.zn || !C.el || C.parts) { close3D(); return; }
+  const gen = ++M3.gen;
+  const found = await find3D(F.tax, C.el.id);
+  if (gen !== M3.gen) return;   // 等待時表單又變了
+  if (!found) { close3D(); return; }
+  $(P3.wrap).classList.remove("hidden");
+  // 分型（例如掌骨 III、IV）
+  const m = found.models.find((x) => x.id === F.model3d) || found.models[0];
+  $("z3Variant").classList.toggle("hidden", found.models.length < 2);
+  $("z3Variant").innerHTML = found.models.map((x) => `<option value="${esc(x.id)}" ${x === m ? "selected" : ""}>${esc(x.variant || x.id.split("/")[1])}</option>`).join("");
+  // 圖層
+  if (!layerReady(M3.layer)) M3.layer = "zones";
+  $("z3Layer").innerHTML = Object.entries(LAYERS).map(([k, L]) => `<label title="${layerReady(k) ? "" : `先勾選${L.name}的類型，並在保存部位選擇 zone`}"><input type="radio" name="z3l" value="${k}" ${k === M3.layer ? "checked" : ""} ${layerReady(k) ? "" : "disabled"}>${L.text ? `<span class="lg" style="background:${L.color};margin-left:0"></span>` : ""}${L.name}</label>`).join("");
+  const mirror = (F.side === "R" && m.side === "L") || (F.side === "L" && m.side === "R");
+  const L = LAYERS[M3.layer];
+  $(P3.note).innerHTML = (M3.layer === "zones"
+      ? "點一下模型上的區塊，選取或取消保存的 zone（和上方的 zone 按鈕同步）。"
+      : `點一下模型上的區塊，標示${L.name}的位置（只能選保存的 zone：${F.zones.join("、")}）。`) +
+    "單指拖曳旋轉、雙指縮放。" +
+    `<br><span class="lg" style="background:#d99a4e;margin-left:0"></span>保存部位<span class="lg" style="background:${LAYERS.cut.color}"></span>切＝切砍痕<span class="lg" style="background:${LAYERS.gnaw.color}"></span>咬＝啃咬痕` +
+    (found.level ? `<br><span class="warnline">這個物種沒有自己的模型，借用「${esc(found.sp)}」的模型。</span>` : "") +
+    (mirror ? `　<span class="muted">（右側：顯示左側模型的鏡像）</span>` : "");
+  const key = m.id + (mirror ? "|M" : "");
+  if (key !== P3.key) {
+    if (P3.V) { P3.V.dispose(); P3.V = null; }
+    P3.key = key; P3.hl = "";
+    $(P3.msg).hidden = false; $(P3.msg).textContent = "載入 3D 模型中…";
+    try {
+      if (!window.Zone3D) await import("./3d/zone3d.js");
+      const d = found.zones[m.id], labels = Uint8Array.from(atob(d.b64), (ch) => ch.charCodeAt(0));
+      const url = "3d/models/" + m.file.split("/").map(encodeURIComponent).join("/");
+      const V = await window.Zone3D.create($(P3.view), { url, labels, mirror, style: "outline", mode: "pick", onPick: (p) => pick3D(p) });
+      if (P3.key !== key) { V.dispose(); return; }   // 載入期間又換了模型
+      P3.V = V; $(P3.msg).hidden = true;
+    } catch (e) { $(P3.msg).textContent = "3D 模型載入失敗：" + e.message; P3.key = ""; return; }
+  }
+  P3.model = m;
+  if (!P3.V) return;
+  // 同步：保存的 zone 填色；目前圖層是切砍或啃咬時，那些位置改用紅色／藍色；號碼旁加「切」「咬」標記
+  const colors = {};
+  if (M3.layer !== "zones") for (const z of F[M3.layer].zones) colors[z] = L.hex;
+  const marks = {};
+  for (const k of ["cut", "gnaw"]) if (F[k].types.length) for (const z of F[k].zones) (marks[z] ||= []).push({ text: LAYERS[k].text, color: LAYERS[k].color });
+  const hl = [M3.layer, F.zones, F.cut.types.length && F.cut.zones, F.gnaw.types.length && F.gnaw.zones].map(String).join("|");
+  if (hl !== P3.hl) { P3.hl = hl; P3.V.setHighlight(F.zones, colors); P3.V.setMarks(marks); }
+  showGoButtons();
+}
+/* 表面痕跡區塊的「在 3D 模型上標示」按鈕：有 3D 模型且該圖層可用時才顯示 */
+function showGoButtons() { document.querySelectorAll("[data-go3d]").forEach((b) => (b.hidden = !(P3.V && layerReady(b.dataset.go3d)))); }
+$("form").addEventListener("click", (e) => { const b = e.target.closest("[data-go3d]"); if (b) goLayer(b.dataset.go3d); });
+/* 保存的區位必須彼此相連：zone 之間的相鄰關係取自 3D 模型的界線（沒有模型時不檢查） */
+function zoneAdjNow() {
+  if (!P3.V) return null;
+  if (M3.adjKey !== P3.key) { M3.adj = P3.V.zoneAdj(); M3.adjKey = P3.key; }
+  return M3.adj;
+}
+function zonesConnected(zs, adj) {
+  if (zs.length < 2) return true;
+  const set = new Set(zs), seen = new Set([zs[0]]), q = [zs[0]];
+  while (q.length) { const z = q.pop(); for (const y of adj.get(z) || []) if (set.has(y) && !seen.has(y)) { seen.add(y); q.push(y); } }
+  return seen.size === set.size;
+}
+/* 選取或取消一個保存的 zone；會造成不相連時不接受（回傳 false） */
+function toggleZone(z) {
+  const adding = !F.zones.includes(z);
+  const next = adding ? [...F.zones, z].sort((a, b) => a - b) : F.zones.filter((x) => x !== z);
+  const adj = zoneAdjNow();
+  if (adj && !zonesConnected(next, adj)) {
+    toast(adding ? `zone ${z} 和已選的區位不相連，不能選取` : `取消 zone ${z} 後，剩下的區位會不相連`);
+    return false;
+  }
+  F.zones = next; return true;
+}
+/* 點模型上的區塊：依目前圖層選取或取消。切砍、啃咬只能點保存部位已選的 zone */
+function pick3D({ zone }) {
+  if (!zone) return;
+  if (M3.layer === "zones") { if (!toggleZone(zone)) return; }
+  else {
+    if (!F.zones.includes(zone)) { toast(`zone ${zone} 不在保存部位中，請先切換到「保存部位」選取`); return; }
+    const k = M3.layer;
+    F[k].zones = F[k].zones.includes(zone) ? F[k].zones.filter((z) => z !== zone) : [...F[k].zones, zone].sort((a, b) => a - b);
+  }
+  if (P3.model) F.model3d = P3.model.id;
+  render();
+}
+$("z3Layer").addEventListener("change", (e) => { M3.layer = e.target.value; P3.hl = ""; sync3D(ctxOf()); });
+$("z3Variant").onchange = (e) => { F.model3d = e.target.value; sync3D(ctxOf()); };
+$("z3Reset").onclick = () => P3.V && P3.V.resetView();
+
 /* ============================================================== 編碼 */
 function codeSummary(r) {
   const p = [];
@@ -1552,7 +1821,7 @@ function preview() {
   const lines = [];
   const id = [lowest(F.tax) + (F.cf ? " cf." : ""), F.size && sizeMode(F.tax).mode !== "auto" ? F.size : "", C.el ? C.el.id : "", F.side ? SIDE_ZH[F.side] : ""].filter(Boolean).join("　");
   if (id) lines.push(id);
-  const sm = codeSummary({ ...F, parts: C.ps, zoneOn: !!C.zn, fp: C.fuse ? F.fp : "", fd: C.fuse ? F.fd : "", jaw: C.jaw, teeth: C.teeth && (C.teeth === "tooth" || F.hasTeeth) ? F.teeth : [] });
+  const sm = codeSummary({ ...F, parts: C.ps, zoneOn: !!C.zn, fp: C.fuseP ? F.fp : "", fd: C.fuseD ? F.fd : "", jaw: C.jaw, teeth: C.teeth && (C.teeth === "tooth" || F.hasTeeth) ? F.teeth : [] });
   if (sm) lines.push(sm);
   const ms = Object.entries(F.meas).filter(([, v]) => v).map(([k, v]) => k + "=" + v + (F.measPlus[k] ? "+" : ""));
   if (ms.length) lines.push(ms.join(" "));
@@ -1607,6 +1876,8 @@ function check() {
   if (qn > 1 && !F.frag && C.el && !QTY_OK.has(C.el.id)) warns.push(`Qty 是 ${q}，但沒有勾「碎片」。只有其他資訊完全相同時才會合併計數，確定嗎？`);
   if (qn > 1 && (F.zones.length || (C.fuse && (F.fp || F.fd)) || (tOn && F.teeth.length))) warns.push(`Qty 是 ${q}，同時記錄了保存部位、癒合或牙齒，這些資訊會被視為每一件都相同。`);
   if (C.zn && !F.zones.length) warns.push("這個部位有 zone 分區，但沒有勾選任何 zone。");
+  const odd = Object.keys(F.meas).filter((k) => F.meas[k] && measHint(C, k) && !measHint(C, k).ok);
+  if (odd.length) warns.push(`測量值和保存區位不符，請確認：${odd.map((k) => `${k}（${hintText(measHint(C, k))}）`).join("；")}`);
   if (tOn) { const nw = F.teeth.filter((t) => !t.wear && t.t !== "C").map((t) => t.t); if (nw.length) warns.push(`${nw.join("、")} 沒有記錄萌發／磨耗。`); }
   if (F.cut.types.length && C.zn && !F.cut.zones.length) warns.push("有切砍痕，但沒有勾選位置（zone）。");
   if (F.gnaw.types.length && C.zn && !F.gnaw.zones.length) warns.push("有啃咬痕，但沒有勾選位置（zone）。");
@@ -1646,7 +1917,8 @@ function cleanRecord() {
   if (!r.cut.types.length) r.cut = { types: [], zones: [], loc: "", cf: false };
   if (!r.gnaw.types.length) r.gnaw = { types: [], zones: [], loc: "", cf: false };
   if (r.burn.range === "無") r.burn.cf = false;
-  if (!C.fuse) { r.fp = ""; r.fd = ""; }
+  if (!C.fuseP) r.fp = "";
+  if (!C.fuseD) r.fd = "";
   const tOn = teethOn(C);
   if (!tOn) { r.teeth = []; r.hasTeeth = false; r.jaw = ""; } else { r.hasTeeth = true; r.jaw = C.jaw; r.teeth.forEach((t) => (t.sys = C.ws.key === "B" ? "Bowen 2016" : "Lemoine 2014")); }
   if (!(tOn && C.hasC)) r.sex = "";
@@ -1654,10 +1926,13 @@ function cleanRecord() {
   r.teeth.forEach((t) => { for (const k in t.meas) if (!t.meas[k]) delete t.meas[k]; for (const k in t.plus) if (!t.plus[k] || !t.meas[k]) delete t.plus[k]; });
   const codes = new Set(C.std.concat(C.custom));
   for (const k in r.meas) if (!r.meas[k] || !codes.has(k)) { delete r.meas[k]; delete r.measPlus[k]; }
+  for (const k in r.meas) r.meas[k] = fmt2(r.meas[k]);
+  r.teeth.forEach((t) => { for (const k in t.meas) t.meas[k] = fmt2(t.meas[k]); });
   for (const k in r.measPlus) if (!r.measPlus[k] || !r.meas[k]) delete r.measPlus[k];
   const sm = sizeMode(r.tax);
   r.sizeSrc = sm.mode === "auto" ? "自動" : r.size ? "記錄者" : "";
   if (sm.mode === "none") r.size = "";
+  if (!C.zn) r.model3d = "";   // 用 3D 模型點選 zone 時記下模型（例如豬的掌骨 III）
   r.site = r.site || S.site || "";
   r.summary = codeSummary(r);
   return r;
@@ -1825,7 +2100,7 @@ const ctxText = (r) => Object.values(r.ctx).filter(Boolean).join(" ");
 function refreshLists() {
   $("nRec").textContent = S.records.length ? `(${S.records.length})` : "";
   const rec = S.records.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 10);
-  $("recent").innerHTML = rec.map((r) => `<li data-id="${r.uuid}"><b>${fmtSerial(r.code, r.seq)}</b><span>${esc(ctxText(r))}　${esc(recLabel(r))}</span></li>`).join("") || `<li class="muted" style="cursor:default">還沒有紀錄。從上方輸入第一筆開始。</li>`;
+  $("recent").innerHTML = rec.map((r) => `<li data-id="${r.uuid}" class="${r.check ? "chk-on" : ""}" title="${r.check ? esc("待查核：" + (r.checkNote || "")) : ""}"><b>${r.check ? "＊" : ""}${fmtSerial(r.code, r.seq)}</b><span>${r.check ? `<em class="flag">待查核</em> ` : ""}${esc(ctxText(r))}　${esc(recLabel(r))}</span></li>`).join("") || `<li class="muted" style="cursor:default">還沒有紀錄。從上方輸入第一筆開始。</li>`;
   renderList(); renderIO();
 }
 $("recent").onclick = (e) => { const li = e.target.closest("li[data-id]"); if (li) editRecord(li.dataset.id); };
@@ -1913,7 +2188,7 @@ function buildCSVs(records, pad, fields) {
       啃咬: r.gnaw.types.join("/"), 啃咬疑似: r.gnaw.cf ? "cf." : "", 啃咬zone: compress(r.gnaw.zones), 啃咬位置: r.gnaw.loc,
       病理: r.path, 照片: r.photo || (r.photos || []).length ? "v" : "", 照片檔名: (r.photos || []).map((id, i) => photoName(r, i, pad)).join("; "), 可拼合: (r.refits || []).map((k) => keyToSerial(k, pad)).join(", "),
       待查核: r.check ? "v" : "", 查核說明: r.checkNote, 備註: r.note, 編碼摘要: r.summary,
-      建立時間: r.createdAt, 更新時間: r.updatedAt,
+      "3D模型": r.model3d || "", 建立時間: r.createdAt, 更新時間: r.updatedAt,
       碎片: r.frag ? "v" : "", Qty: r.qty, 重量: num(r.wt),
     });
     main.push(o);
@@ -1929,7 +2204,7 @@ function buildCSVs(records, pad, fields) {
   const elc = ["骨骼", "骨骼中文", "細分部位", "側"];
   const head = [...idc, "體型", "體型依據", ...elc, "Z1", "Z2", "Z3", "Z4", "Z5", "Z6", "Z7", "Z8", "近端癒合", "遠端癒合",
     "帶齒", "上下顎", "齒位", "性別", "燒炙範圍", "燒炙顏色", "燒炙疑似", "切砍", "切砍疑似", "切砍zone", "切砍位置", "啃咬", "啃咬疑似", "啃咬zone", "啃咬位置",
-    "病理", "照片", "照片檔名", "可拼合", "待查核", "查核說明", "備註", "編碼摘要", "建立時間", "更新時間", "碎片", "Qty", "重量"];
+    "病理", "照片", "照片檔名", "可拼合", "待查核", "查核說明", "備註", "編碼摘要", "3D模型", "建立時間", "更新時間", "碎片", "Qty", "重量"];
   return [
     { path: "紀錄.csv", text: toCSV(main, head) },
     { path: "測量長表.csv", text: toCSV(meas, [...idc, ...elc, "測量對象", "上下顎", "齒位", "萌發磨耗", "計分系統", "Lemoine分數", "測量項目", "測量值", "殘缺", "Qty"]) },
@@ -2284,6 +2559,8 @@ if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
         if (navigator.serviceWorker.controller) ask(w); else toast("已完成離線安裝，之後沒有網路也能使用");
       });
     });
+    // 補下載之後才設定好 zone 的 3D 模型（只下載還沒有的檔案）
+    if (navigator.onLine && reg.active) setTimeout(() => reg.active.postMessage("sync3D"), 5000);
   }).catch(() => {});
   let reloaded = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => { if (S.swWaiting && !reloaded) { reloaded = true; location.reload(); } });
@@ -2307,6 +2584,7 @@ if (navigator.storage && navigator.storage.persist) navigator.storage.persisted(
   // 物種名冊（TaiCOL）；讀不到時（例如直接開檔案）只用內建清單
   try { const x = await (await fetch("taxa.json")).json(); if (x && x.rows) EXT = aliasTaxa(x); } catch (e) { /* 內建清單 */ }
   buildTaxa();
+  await init3D();
   F = blank(await g("lastCtx", null));
   taxSetup(); elSetup();
   fillForm(); showWho(); refreshLists(); renderSettings(); banners();
