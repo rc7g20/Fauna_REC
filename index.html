@@ -456,7 +456,7 @@ dialog::backdrop{background:rgba(30,25,15,.45)}
         <button class="primary" id="btnCSV">匯出 CSV（Excel 可開）</button>
         <button id="btnJSON">匯出紀錄（JSON）</button>
       </div>
-      <p class="note">CSV 有三個檔：紀錄（一筆一列）、測量長表（一個測量值一列）、牙齒長表（一顆牙一列），另附「照片」資料夾，檔名是流水號。數量欄位一律放在最後。<br>「匯出紀錄（JSON）」包含這台裝置的全部紀錄，用來備份、換裝置繼續記錄，以及最後合併多人的紀錄。有照片時會打包成 .zip（內含 JSON 與照片），沒有照片時是 .json。</p>
+      <p class="note">CSV 有三個檔：紀錄（一筆一列）、測量長表（一個測量值一列）、牙齒長表（一顆牙一列），另附「照片」資料夾，檔名是流水號。數量欄位一律放在最後。「BAFFA用」資料夾是給獸骨資料分析工具（BAFFA）直接讀取的格式。<br>「匯出紀錄（JSON）」包含這台裝置的全部紀錄，用來備份、換裝置繼續記錄，以及最後合併多人的紀錄。有照片時會打包成 .zip（內含 JSON 與照片），沒有照片時是 .json。</p>
       <div id="ioMsg"></div>
     </section>
     <section class="card">
@@ -2392,10 +2392,82 @@ async function writeFiles(folder, files, msgEl) {
   }
   return true;
 }
+/* ============================================================== BAFFA 用的檔案
+   BAFFA（獸骨資料分析工具）是依舊的單一試算表設計的：主表一筆一列，欄名「物種、骨骼、數量、側、1–8、切割、燒炙、啃咬、性別、備註…」；
+   牙齒磨耗與臼齒測量讀「物種_長表_mandible／tooth／maxilla.csv」（流水號、骨骼、上下顎 upper/lower、齒位、側別、磨耗、測量項目、測量值）。
+   這裡把紀錄轉成這個格式，放在「BAFFA用」資料夾 */
+/* Lemoine 萌發階段 0–6 → BAFFA 看得懂的寫法（BAFFA 不讀純數字）；精確分數另外寫在 磨耗對照.csv */
+const BAFFA_ERUPT = { 0: "unerupted", 1: "in crypt", 2: "V", 3: "crypt", 4: "erupting", 5: "1/2", 6: "U" };   // 每個階段用不同寫法，磨耗對照.csv 才能分別給分
+const baffaWear = (t) => (t.sys === "Lemoine 2014" && /^[0-6]$/.test(t.wear || "") ? BAFFA_ERUPT[t.wear] : t.wear || "");
+const baffaName = (s) => String(s).replace(/[\\/:*?"<>| ]+/g, "_");
+function baffaSpecies(r) {
+  if (!r.tax[0] || r.tax[0] === "不明") return "UN";
+  const sp = lowest(r.tax);
+  return sp === r.tax[0] && r.size ? `${sp}（${r.size} size）` : sp;   // 只辨識到綱：用體型分級（名稱含 size，BAFFA 會當作體型類別）
+}
+function baffaBone(r) {   // 牙齒長表要放在哪一個檔
+  if (r.el === "Tooth") return "tooth";
+  if (r.el === "Mandible") return "mandible";
+  if (r.el === "Cranium") return "maxilla";
+  return r.jaw === "upper" ? "maxilla" : r.jaw === "lower" ? "mandible" : "tooth";
+}
+function buildBAFFA(records, pad, fields) {
+  const CC = ctxColumns(records, fields);
+  const ser = (r) => fmtSerial(r.code, r.seq, pad);
+  const mark = (types, cf, extra = "") => (types.length ? types.join("、") + extra + (cf ? " cf." : "") : "");
+  const sorted = records.slice().sort((a, b) => a.code.localeCompare(b.code) || a.seq - b.seq);
+  const main = [], longs = new Map(), wears = new Map();
+  for (const r of sorted) {
+    const sp = baffaSpecies(r);
+    const note = [r.note, r.sex === "M" || r.sex === "F" ? `犬齒判定性別：${r.sex === "M" ? "雄" : "雌"}（${JAW_ZH[r.jaw] || "上下顎不明"}）` : ""].filter(Boolean).join("；");
+    const o = { 流水號: ser(r), 遺址: r.site || "" };
+    CC.forEach((c) => (o[c] = r.ctx[c] ?? ""));
+    RANKS.slice(0, 4).forEach((k, i) => (o[k] = r.tax[i]));
+    Object.assign(o, { 物種: sp, 疑似: r.cf ? "cf." : "", 體型: r.size || "", 骨骼: r.el, 掌蹠骨序: r.digit === "?" ? "不明" : r.digit || "", 細分部位: (r.parts || []).join("+"), 側: r.side });
+    for (let z = 1; z <= 8; z++) o[z] = r.zoneOn && r.zones.includes(z) ? "v" : "";
+    Object.assign(o, {
+      近端癒合: r.fp, 遠端癒合: r.fd,
+      切割: mark(r.cut.types, r.cut.cf), 燒炙: r.burn.range !== "無" ? `${r.burn.range}（${r.burn.colors.join("/") || "?"}）${r.burn.cf ? " cf." : ""}` : "", 啃咬: mark(r.gnaw.types, r.gnaw.cf),
+      性別: r.sex === "M" || r.sex === "F" ? r.sex : "", 備註: note, 病理: r.path, 待查核: r.check ? "v" : "", 編碼摘要: r.summary,
+      數量: String(r.qty || "").replace(/^~/, ""), 重量: num(r.wt),
+    });
+    main.push(o);
+    for (const t of r.teeth || []) {
+      const bone = baffaBone(r), key = baffaName(sp) + "_長表_" + bone + ".csv";
+      if (!longs.has(key)) longs.set(key, []);
+      const w = baffaWear(t);
+      if (w && t.sys === "Lemoine 2014") { const s = wearScore(t.wear); if (s !== "") wears.set(w, s); }
+      const base = { 流水號: ser(r), 骨骼: r.el, 上下顎: { upper: "upper", lower: "lower" }[r.jaw] || "", 齒位: t.t, 側別: r.side, 磨耗: w, 原始磨耗: t.wear || "", 計分系統: t.wear ? t.sys : "" };
+      const ms = Object.entries(t.meas || {}).filter(([, v]) => v);
+      if (!ms.length) longs.get(key).push({ ...base, 測量項目: "", 測量值: "" });
+      for (const [k, v] of ms) longs.get(key).push({ ...base, 測量項目: k, 測量值: num(v) });
+    }
+  }
+  const sites = [...new Set(records.map((r) => r.site).filter(Boolean))];
+  const name = baffaName(sites.length === 1 ? sites[0] : "合併");
+  const head = ["流水號", "遺址", ...CC, "綱", "目", "科", "屬", "物種", "疑似", "體型", "骨骼", "掌蹠骨序", "細分部位", "側", "1", "2", "3", "4", "5", "6", "7", "8",
+    "近端癒合", "遠端癒合", "切割", "燒炙", "啃咬", "性別", "備註", "病理", "待查核", "編碼摘要", "數量", "重量"];
+  const lh = ["流水號", "骨骼", "上下顎", "齒位", "側別", "磨耗", "測量項目", "測量值", "原始磨耗", "計分系統"];
+  const files = [{ path: `BAFFA用/${name}_ALL.csv`, text: toCSV(main, head) }];
+  for (const [k, rows] of longs) files.push({ path: "BAFFA用/" + k, text: toCSV(rows, lh) });
+  if (wears.size) files.push({ path: "BAFFA用/磨耗對照.csv", text: toCSV([...wears].map(([w, s]) => ({ 原始寫法: w, Lemoine分數: s })), ["原始寫法", "Lemoine分數"]) });
+  files.push({ path: "BAFFA用/說明.txt", text: [
+    "這個資料夾的檔案可以直接用 BAFFA（獸骨資料分析工具）讀取。",
+    "",
+    `1. 在 BAFFA 的資料夾中，新增一個遺址資料夾，把這裡的「${name}_ALL.csv」和所有「…_長表_….csv」放進去。`,
+    "   （平板：按「選擇檔案（平板）」，把 _ALL.csv 和長表一起選取。）",
+    "2. 磨耗對照.csv：豬牙萌發階段 0–6 的精確 Lemoine 分數。電腦版請放進該遺址的「分析結果」資料夾（BAFFA 第一次載入後會自動建立）；",
+    "   沒有放的話，BAFFA 會用預設判讀（例如 unerupted＝0–3），也可以在 BAFFA 的「年齡」頁直接修改分數。",
+    "3. 欄位說明：物種＝辨識到的最低階層；只辨識到綱的哺乳類寫成「哺乳綱（中型 size）」這類體型分級；無法辨識寫成 UN。",
+    "   1–8＝保存區位（zone）；性別只來自犬齒，備註中寫有「犬齒判定性別」，BAFFA 會自動採計。",
+    "   骨骼測量值（GL、Bp…）BAFFA 不分析，請用「測量長表.csv」。",
+  ].join("\r\n") });
+  return files;
+}
 $("btnCSV").onclick = async () => {
   if (!S.records.length) { $("ioMsg").innerHTML = `<p class="note">還沒有紀錄可以匯出。</p>`; return; }
   const missing = [];
-  const files = buildCSVs(S.records, LOCAL_PAD, S.ctxFields).concat(await photoFiles(photoEntries(S.records, LOCAL_PAD), localBlob, missing));
+  const files = buildCSVs(S.records, LOCAL_PAD, S.ctxFields).concat(buildBAFFA(S.records, LOCAL_PAD, S.ctxFields), await photoFiles(photoEntries(S.records, LOCAL_PAD), localBlob, missing));
   await writeFiles("獸骨紀錄_匯出_" + stamp(), files, $("ioMsg"));
   if (missing.length) $("ioMsg").insertAdjacentHTML("beforeend", `<p class="warnline">有 ${missing.length} 張照片找不到檔案：${missing.map(esc).join("、")}</p>`);
 };
@@ -2575,7 +2647,7 @@ $("btnMerge").onclick = async () => {
     for (const t of d.customTaxa || []) if (!taxa.some((x) => x.join("|") === t.join("|"))) taxa.push(t);
     for (const [k, a] of Object.entries(d.customMeasures || {})) meas[k] = [...new Set((meas[k] || []).concat(a))];
   }
-  const csvs = buildCSVs(m.recs, m.pad, m.fields);
+  const csvs = buildCSVs(m.recs, m.pad, m.fields).concat(buildBAFFA(m.recs, m.pad, m.fields));
   csvs.push({ path: "流水號變更紀錄.csv", text: toCSV(m.log, ["原流水號", "新流水號", "記錄者", "原因"]) });
   const ents = photoEntries(m.recs, m.pad), missing = [];
   csvs.push({ path: "合併後完整資料.json", text: JSON.stringify({ format: "shisanhang-faunarec", version: 3, merged: true, pad: m.pad, exportedAt: nowISO(), recorders: m.recorders, counters: {}, ctxFields: m.fields, customTaxa: taxa, customMeasures: meas, records: m.recs, photoFiles: Object.fromEntries(ents.map((e) => [e.id, e.path])) }) });
