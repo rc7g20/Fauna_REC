@@ -305,6 +305,7 @@ dialog::backdrop{background:rgba(30,25,15,.45)}
     <div class="fields" style="margin-top:12px">
       <div class="f combo w20"><label for="el_in" class="req">骨骼部位 Element</label><input id="el_in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="輸入中/英文…"></div>
       <div class="f"><span class="lb">側別 Side</span><div class="seg" id="sideSeg"></div></div>
+      <div class="f hidden" id="digitWrap"><span class="lb req" id="digitLab">第幾掌骨 Digit</span><div class="seg" id="digitSeg"></div></div>
       <div class="f hidden" id="sizeWrap"><label for="size" id="sizeLab">體型 Size</label>
         <select id="size" class="w10"></select></div>
     </div>
@@ -453,14 +454,14 @@ dialog::backdrop{background:rgba(30,25,15,.45)}
       <div id="ioStats"></div>
       <div class="row">
         <button class="primary" id="btnCSV">匯出 CSV（Excel 可開）</button>
-        <button id="btnJSON">下載完整備份</button>
+        <button id="btnJSON">匯出紀錄（JSON）</button>
       </div>
-      <p class="note">CSV 有三個檔：紀錄（一筆一列）、測量長表（一個測量值一列）、牙齒長表（一顆牙一列），另附「照片」資料夾，檔名是流水號。數量欄位一律放在最後。完整備份是全部資料，用於換裝置繼續記錄與最後的合併；有照片時是 .zip（內含照片），沒有照片時是 .json。</p>
+      <p class="note">CSV 有三個檔：紀錄（一筆一列）、測量長表（一個測量值一列）、牙齒長表（一顆牙一列），另附「照片」資料夾，檔名是流水號。數量欄位一律放在最後。<br>「匯出紀錄（JSON）」包含這台裝置的全部紀錄，用來備份、換裝置繼續記錄，以及最後合併多人的紀錄。有照片時會打包成 .zip（內含 JSON 與照片），沒有照片時是 .json。</p>
       <div id="ioMsg"></div>
     </section>
     <section class="card">
       <h2>自動備份</h2>
-      <p class="note" style="margin-top:0" id="dirNote">紀錄存在這個瀏覽器裡。清除瀏覽器資料就會消失，所以請設定一個備份資料夾（建議是隨身碟或雲端同步資料夾）。每次儲存後會自動寫入「獸骨紀錄_自動備份.json」，並每天另存一份。自動備份不含照片，照片請用「下載完整備份」。</p>
+      <p class="note" style="margin-top:0" id="dirNote">紀錄存在這個瀏覽器裡。清除瀏覽器資料就會消失，所以請設定一個備份資料夾（建議是隨身碟或雲端同步資料夾）。每次儲存後會自動寫入「獸骨紀錄_自動備份.json」，並每天另存一份。自動備份不含照片，照片請用「匯出紀錄（JSON）」。</p>
       <div class="row" id="dirRow"><button id="btnDir">選擇備份資料夾</button><span class="muted" id="dirInfo">尚未設定</span></div>
     </section>
     <section class="card">
@@ -650,6 +651,18 @@ function measHint(C, code) {
   return { ok: need.every((z) => F.zones.includes(z)), need, all: rule === "all", note };
 }
 const hintText = (h) => `建議保存區位：${h.all ? "全部" : h.need.join("、")}${h.note ? "（" + h.note + "）" : ""}`;
+/* 掌骨、蹠骨各自分開的動物（目前是豬科、食肉目）：記錄第幾掌（蹠）骨。依分類由上往下比對，第一個符合的適用。
+   之後要加其他類群時，在這裡加一行即可 */
+const ROMAN = ["", "I", "II", "III", "IV", "V"];
+const DIGITS = [
+  { test: (t) => t[2] === "豬科" || t[3] === "野豬屬", opts: { Metacarpal: [2, 3, 4, 5], Metatarsal: [2, 3, 4, 5], Metapodial: [2, 3, 4, 5] } },
+  { test: (t) => t[1] === "食肉目", opts: { Metacarpal: [1, 2, 3, 4, 5], Metatarsal: [2, 3, 4, 5], Metapodial: [1, 2, 3, 4, 5] } },
+];
+const digitOpts = (tax, elId) => { for (const d of DIGITS) if (d.test(tax)) return d.opts[elId] || null; return null; };
+const DIGIT_LAB = { Metacarpal: "第幾掌骨", Metatarsal: "第幾蹠骨", Metapodial: "第幾掌蹠骨" };
+const digitFull = (C) => !!C.zn && F.zones.length === C.zn;   // 8 個區位都保存
+/* 紀錄上顯示的掌蹠骨序：digit 是 "1"–"5"，或 "?"（不明） */
+const digitText = (r) => (r.digit === "?" ? "?" : r.digit ? ROMAN[+r.digit] : "");
 const LIMB_PD = { p: [1, 2], d: [7, 8] };
 const FUSE_ZONES = {
   Humerus: LIMB_PD, Radius: LIMB_PD, Ulna: LIMB_PD, "Radius + Ulna (fused)": LIMB_PD,
@@ -1002,7 +1015,7 @@ function blank(ctx) {
     uuid: null, code: null, seq: null, recorder: null, createdAt: null, updatedAt: null,
     ctx: ctx ? clone(ctx) : {},
     tax: ["", "", "", "", ""], cf: false, size: "",
-    el: "", parts: [], side: "",
+    el: "", parts: [], side: "", digit: "",
     zones: [], fp: "", fd: "",
     hasTeeth: false, jaw: "", teeth: [], sex: "",
     meas: {}, measPlus: {},
@@ -1020,6 +1033,7 @@ function migrate(r) {
   r.zoneOn ??= !!r.zoneN;
   delete r.sub; delete r.zoneN;
   r.parts ??= [];
+  r.digit ??= "";
   r.photos ??= [];
   for (const k of ["burn", "cut", "gnaw"]) if (r[k]) r[k].cf ??= false;
   r.site ??= "";
@@ -1268,10 +1282,20 @@ function taxSetup() {
 }
 const elText = (e) => `${e.zh}　${e.id}`; // 中文在前、英文在後
 const elItem = (e) => ({ value: e.id, label: e.zh, html: `${esc(e.zh)} <span class="muted">${esc(e.id)}</span>` });
+/* 新增的骨骼部位（不在 ELEMENTS 清單中）：之前紀錄用過的名稱會出現在選單中；使用時自動標記「待查核」 */
+const customEls = () => [...new Set(S.records.map((r) => r.el).filter((x) => x && !EL.has(x) && !x.startsWith("__bad:")))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
+const NEW_EL_NOTE = /新增骨骼部位「[^」]*」[；]?/g;
+function markNewEl(id) {
+  const base = (F.checkNote || "").replace(NEW_EL_NOTE, "").replace(/；$/, "");
+  if (id) { F.check = true; F.checkNote = [base, `新增骨骼部位「${id}」`].filter(Boolean).join("；"); }
+  else if (base !== (F.checkNote || "")) { F.checkNote = base; if (!base) F.check = false; }   // 改回清單中的部位：拿掉自動加上的標記
+  $("chk").checked = !!F.check; $("chkNote").value = F.checkNote || "";
+}
 function setElement(id) {
   F.el = id;
   const e = EL.get(id);
   $("el_in").value = e ? elText(e) : id;
+  markNewEl(e || !id ? "" : id);
   if (e) {
     if (e.ax) F.side = "Ax"; else if (F.side === "Ax") F.side = "";
     if (F.side === "R/L" && !e.both) F.side = "";
@@ -1279,20 +1303,30 @@ function setElement(id) {
   }
   render();
 }
+async function confirmNewEl(v) {
+  const ok = await dialog("新增骨骼部位？", `<p>「${esc(v)}」不在骨骼部位清單中。確定要新增這個部位嗎？</p>` +
+    `<p class="note">新增的部位沒有 zone、癒合和預設測量項目。這筆紀錄會自動標記為「待查核」（紀錄列表會以＊標示），方便之後檢查。之後的紀錄可以直接從選單選用這個名稱。</p>`,
+    [["回去修改", false], ["新增", true, "primary"]]);
+  if (F.el !== "__bad:" + v) return;   // 等待期間已經改了
+  if (ok) setElement(v); else $("el_in").focus();
+}
 function elSetup() {
   combo($("el_in"), (q) => {
     const ql = q.toLowerCase().replace(/\s+/g, " ");
     const cur = EL.get(F.el);
-    if (cur && q === elText(cur)) return ELEMENTS.filter((e) => elOk(e, F.tax)).map(elItem);
-    return ELEMENTS.filter((e) => elOk(e, F.tax) && (!q || e.id.toLowerCase().includes(ql) || e.zh.includes(q))).map(elItem);
+    const extra = customEls().filter((n) => !q || n.toLowerCase().includes(ql) || n === F.el).map((n) => ({ value: n, label: n, html: `${esc(n)} <span class="flag">新增的部位</span>` }));
+    if (cur && q === elText(cur)) return ELEMENTS.filter((e) => elOk(e, F.tax)).map(elItem).concat(extra);
+    return ELEMENTS.filter((e) => elOk(e, F.tax) && (!q || e.id.toLowerCase().includes(ql) || e.zh.includes(q))).map(elItem).concat(extra);
   }, (it) => setElement(it.value), {
     onBlur: () => {
       const v = $("el_in").value.trim();
-      if (!v) { if (F.el) { F.el = ""; render(); } return; }
+      if (!v) { if (F.el) setElement(""); return; }
       const e = EL.get(F.el);
-      if (!e || v !== elText(e)) {
+      if (e ? v !== elText(e) : v !== F.el) {
         const hit = ELEMENTS.find((x) => x.id.toLowerCase() === v.toLowerCase() || x.zh === v);
-        if (hit) setElement(hit.id); else { F.el = "__bad:" + v; render(); }
+        if (hit) setElement(hit.id);
+        else if (customEls().includes(v)) setElement(v);
+        else { F.el = "__bad:" + v; render(); setTimeout(() => confirmNewEl(v), 0); }
       }
     },
   });
@@ -1328,7 +1362,8 @@ function ctxOf() {
   let jaw = "";
   if (teeth === "upper" || teeth === "lower") jaw = teeth; else if (teeth) jaw = F.jaw;
   const ws = wearSys(F.tax);
-  return { el, K, mam, zn, zk, fuse, fuseP, fuseD, fz, teeth, jaw, mkey, std, custom, hasC, parts, ps, ws };
+  const digits = mam && el ? digitOpts(F.tax, el.id) : null;
+  return { el, K, mam, zn, zk, fuse, fuseP, fuseD, fz, teeth, jaw, mkey, std, custom, hasC, parts, ps, ws, digits };
 }
 
 function render() {
@@ -1376,9 +1411,11 @@ function render() {
     F.tax.some(Boolean) ? `辨識單元 Taxon：<b>${esc(lowest(F.tax))}</b>${(() => { const i = F.tax.findLastIndex(Boolean), s = sciOf(F.tax, i); return s && s !== lowest(F.tax) ? ` <i>${esc(s)}</i>` : ""; })()}` : "";
   renderTaxInfo();
   $("el_in").classList.toggle("bad", elBad || !!incompatible);
-  $("elMsg").innerHTML = elBad ? `<span class="errline">「${esc(F.el.slice(6))}」不在骨骼清單中，請從選單中選擇。</span>` :
+  $("elMsg").innerHTML = elBad ? `<span class="errline">「${esc(F.el.slice(6))}」不在骨骼清單中。請從選單中選擇，或確認新增這個部位。</span>` :
     incompatible ? `<span class="errline">${esc(el.id)} 不適用於「${esc(lowest(F.tax))}」。請改選骨骼部位或物種。</span>` :
-    el ? `${esc(el.zh)} <span class="en">${esc(el.id)}</span>` : "";
+    el ? `${esc(el.zh)} <span class="en">${esc(el.id)}</span>` :
+    F.el ? `<span class="warnline">「${esc(F.el)}」是新增的骨骼部位（不在清單中），這筆紀錄已標記為待查核。</span>` : "";
+  $("el_in").classList.toggle("new", !!F.el && !el && !elBad);
   // 保存部位與癒合
   $("secZone").classList.toggle("hidden", !(C.zn || C.fuse));
   $("fp").closest(".f").classList.toggle("hidden", !C.fuseP);
@@ -1393,6 +1430,17 @@ function render() {
   $("zoneLab").textContent = C.parts ? "Zone（枕骨）" : "Zone";
   $("zones").innerHTML = Array.from({ length: C.zn }, (_, i) => i + 1).map((z) => `<label><input type="checkbox" data-zone="${z}" ${F.zones.includes(z) ? "checked" : ""}>${z}</label>`).join("");
   $("zoneRef").textContent = C.zk === "B" ? "鳥類分區圖" : "哺乳類分區圖";
+  // 第幾掌（蹠）骨：8 個區位都保存時應能判斷，不能選「不明」
+  $("digitWrap").classList.toggle("hidden", !C.digits);
+  if (!C.digits) F.digit = "";
+  else {
+    if (F.digit && F.digit !== "?" && !C.digits.includes(+F.digit)) F.digit = "";
+    const full = digitFull(C);
+    $("digitLab").textContent = `${DIGIT_LAB[el.id]} Digit`;
+    $("digitSeg").innerHTML = [["?", "不明"], ...C.digits.map((d) => [String(d), String(d)])].map(([v, t]) =>
+      `<label title="${v === "?" && full ? "8 個區位都保存時，請判斷是第幾" + DIGIT_LAB[el.id].slice(2) : v === "?" ? "" : ROMAN[+v]}"><input type="radio" name="digit" value="${v}" ${F.digit === v ? "checked" : ""} ${v === "?" && full ? "disabled" : ""}>${t}</label>`).join("");
+    if (F.digit === "?" && full) $("elMsg").insertAdjacentHTML("beforeend", `<br><span class="errline">8 個區位都保存了，應該可以判斷是第幾${DIGIT_LAB[el.id].slice(2)}，請不要選「不明」。</span>`);
+  }
   const vert = el && el.ax;
   $("fpLab").textContent = vert ? "前端（頭側）" : "近端"; $("fdLab").textContent = vert ? "後端（尾側）" : "遠端";
   for (const id of ["fp", "fd"]) $(id).innerHTML = FUSION.map(([v, t]) => `<option value="${v}" ${F[id] === v ? "selected" : ""}>${t}</option>`).join("");
@@ -1503,6 +1551,7 @@ function renderMeas(C) {
 $("form").addEventListener("change", (e) => {
   const t = e.target;
   if (t.name === "side") { F.side = t.value; $("sideSeg").classList.remove("bad"); preview(); }
+  else if (t.name === "digit") { F.digit = t.value; $("digitSeg").classList.remove("bad"); render(); }
   else if (t.name === "jaw") { F.jaw = t.value; render(); }
   else if (t.dataset.part) { const k = t.dataset.part; F.parts = t.checked ? CRANIAL.map(([x]) => x).filter((x) => x === k || F.parts.includes(x)) : F.parts.filter((x) => x !== k); render(); }
   else if (t.dataset.zone) { toggleZone(+t.dataset.zone); render(); }   // 不相連時 render 會把勾選還原
@@ -1685,11 +1734,13 @@ function spCandidates(tax) {
   for (const c of cand) if (have.has(c.name) && !out.some((o) => o.name === c.name)) out.push({ name: c.name, level: c.depth === 9 ? 0 : 5 - c.depth });
   return out;
 }
-/* 找這個部位、已設定 zone 的模型；同一部位有多個分型（例如豬的掌骨 III、IV）時一起回傳 */
-async function find3D(tax, elId) {
+/* 找這個部位、已設定 zone 的模型；同一部位有多個分型（例如豬的掌骨 III、IV）時一起回傳。
+   有選第幾掌（蹠）骨時，只用那一個分型的模型（例如豬的第 3 掌骨 → III）；選「不明」時全部回傳，由使用者切換 */
+async function find3D(tax, elId, digit) {
   for (const c of spCandidates(tax)) {
     const d = await spData(c.name);
-    const ms = d.models.filter((m) => m.el === elId && d.zones[m.id] && d.zones[m.id].faces === m.faces);
+    let ms = d.models.filter((m) => m.el === elId && d.zones[m.id] && d.zones[m.id].faces === m.faces);
+    if (digit && digit !== "?" && ms.some((m) => m.variant)) ms = ms.filter((m) => m.variant === ROMAN[+digit]);
     if (ms.length) return { sp: c.name, level: c.level, models: ms, zones: d.zones };
   }
   return null;
@@ -1712,7 +1763,7 @@ function goLayer(k) {
 async function sync3D(C) {
   if (!M3.index || !C.zn || !C.el || C.parts) { close3D(); return; }
   const gen = ++M3.gen;
-  const found = await find3D(F.tax, C.el.id);
+  const found = await find3D(F.tax, C.el.id, C.digits ? F.digit : "");
   if (gen !== M3.gen) return;   // 等待時表單又變了
   if (!found) { close3D(); return; }
   $(P3.wrap).classList.remove("hidden");
@@ -1819,7 +1870,7 @@ function preview() {
   $("serialPrev").textContent = F.uuid ? fmtSerial(F.code, F.seq) : code ? fmtSerial(code, (S.counters[code] || 0) + 1) + "（預定）" : "—";
   renderPathMsg();
   const lines = [];
-  const id = [lowest(F.tax) + (F.cf ? " cf." : ""), F.size && sizeMode(F.tax).mode !== "auto" ? F.size : "", C.el ? C.el.id : "", F.side ? SIDE_ZH[F.side] : ""].filter(Boolean).join("　");
+  const id = [lowest(F.tax) + (F.cf ? " cf." : ""), F.size && sizeMode(F.tax).mode !== "auto" ? F.size : "", C.el ? C.el.id + (C.digits && F.digit ? " " + digitText(F) : "") : F.el.startsWith("__bad:") ? "" : F.el, F.side ? SIDE_ZH[F.side] : ""].filter(Boolean).join("　");
   if (id) lines.push(id);
   const sm = codeSummary({ ...F, parts: C.ps, zoneOn: !!C.zn, fp: C.fuseP ? F.fp : "", fd: C.fuseD ? F.fd : "", jaw: C.jaw, teeth: C.teeth && (C.teeth === "tooth" || F.hasTeeth) ? F.teeth : [] });
   if (sm) lines.push(sm);
@@ -1842,9 +1893,15 @@ function check() {
   // 辨識
   if (!F.tax[0]) err("至少要填「綱」；無法判斷請選「不明」", "t_綱");
   if (C.parts && !partsConnected(F.parts)) errs.push("頭骨已選的部位彼此不相連");
-  if (!F.el || F.el.startsWith("__bad:")) err("請從清單選擇骨骼部位", "el_in");
+  if (!F.el) err("請選擇骨骼部位", "el_in");
+  else if (F.el.startsWith("__bad:")) err(`「${F.el.slice(6)}」不在骨骼清單中：請從選單選擇，或在骨骼部位欄確認新增`, "el_in");
   if (C.el && !elOk(C.el, F.tax)) err(`${C.el.id} 不適用於「${lowest(F.tax)}」`, "el_in");
   if (sizeMode(F.tax).mode === "required" && !F.size) err("只辨識到哺乳綱時，請判斷體型", "size");
+  if (C.digits) {
+    const what = DIGIT_LAB[C.el.id].slice(2);
+    if (!F.digit) err(`請選擇是第幾${what}（無法判斷請選「不明」）`, "digitSeg");
+    else if (F.digit === "?" && digitFull(C)) err(`8 個區位都保存了，請判斷是第幾${what}，不能選「不明」`, "digitSeg");
+  }
   // 牙齒
   const tOn = teethOn(C);
   if (tOn) {
@@ -1913,6 +1970,7 @@ function cleanRecord() {
   delete r.refitText;
   r.zoneOn = !!C.zn;
   r.parts = C.parts ? C.ps.slice() : [];
+  if (!C.digits) r.digit = "";
   if (!C.zn) { r.zones = []; r.cut.zones = []; r.gnaw.zones = []; } else { r.cut.loc = ""; r.gnaw.loc = ""; }
   if (!r.cut.types.length) r.cut = { types: [], zones: [], loc: "", cf: false };
   if (!r.gnaw.types.length) r.gnaw = { types: [], zones: [], loc: "", cf: false };
@@ -2095,7 +2153,7 @@ function showWho() {
 $("btnWho").onclick = askRecorder;
 
 /* ============================================================== 清單 */
-function recLabel(r) { return [lowest(r.tax) + (r.cf ? " cf." : ""), r.el, (r.parts || []).join("+"), r.side ? SIDE_ZH[r.side] : ""].filter(Boolean).join(" "); }
+function recLabel(r) { return [lowest(r.tax) + (r.cf ? " cf." : ""), r.el, digitText(r), (r.parts || []).join("+"), r.side ? SIDE_ZH[r.side] : ""].filter(Boolean).join(" "); }
 const ctxText = (r) => Object.values(r.ctx).filter(Boolean).join(" ");
 function refreshLists() {
   $("nRec").textContent = S.records.length ? `(${S.records.length})` : "";
@@ -2114,7 +2172,7 @@ function renderList() {
   $("listMore").classList.toggle("hidden", rows.length <= S.listLimit);
   $("listTbl").innerHTML = `<tr><th>流水號</th><th>出土脈絡</th><th>辨識</th><th>骨骼</th><th>側</th><th>編碼</th><th>記錄者</th><th>Qty</th><th></th></tr>` +
     show.map((r) => `<tr><td class="mono">${fmtSerial(r.code, r.seq)}</td><td>${esc(ctxText(r))}</td>
-      <td>${esc(lowest(r.tax))}${r.cf ? " cf." : ""}${r.size && r.sizeSrc === "記錄者" ? `（${esc(r.size)}）` : ""}${r.check ? ` <span class="flag" title="${esc(r.checkNote)}">待查核</span>` : ""}${r.photos && r.photos.length ? ` <span class="flag" style="background:var(--accent-soft);color:var(--accent)">照片 ${r.photos.length}</span>` : ""}</td><td>${esc(r.el)}${r.parts && r.parts.length ? " " + esc(r.parts.join("+")) : ""}</td><td>${esc(SIDE_ZH[r.side] || "")}</td>
+      <td>${esc(lowest(r.tax))}${r.cf ? " cf." : ""}${r.size && r.sizeSrc === "記錄者" ? `（${esc(r.size)}）` : ""}${r.check ? ` <span class="flag" title="${esc(r.checkNote)}">待查核</span>` : ""}${r.photos && r.photos.length ? ` <span class="flag" style="background:var(--accent-soft);color:var(--accent)">照片 ${r.photos.length}</span>` : ""}</td><td>${esc(r.el)}${r.digit ? " " + digitText(r) : ""}${r.el && !EL.has(r.el) ? ` <span class="flag">新增</span>` : ""}${r.parts && r.parts.length ? " " + esc(r.parts.join("+")) : ""}</td><td>${esc(SIDE_ZH[r.side] || "")}</td>
       <td class="mono" style="white-space:normal">${esc(r.summary)}</td><td>${esc(r.recorder)}</td><td class="num">${esc(r.qty)}${r.frag ? " frag" : ""}</td>
       <td class="acts"><button class="small" data-ed="${r.uuid}">修改</button> <button class="small" data-cp="${r.uuid}">複製</button> <button class="small danger" data-del="${r.uuid}">刪除</button></td></tr>`).join("");
 }
@@ -2171,7 +2229,8 @@ function buildCSVs(records, pad, fields) {
     o.門 = (phylumOf(r.tax[0]) || [""])[0];
     RANKS.forEach((k, i) => (o[k] = r.tax[i]));
     o.辨識單元 = lowest(r.tax); o.學名 = sciOf(r.tax, r.tax.findLastIndex(Boolean)); o.疑似 = r.cf ? "cf." : "";
-    o.骨骼 = r.el; o.骨骼中文 = EL.get(r.el)?.zh || ""; o.細分部位 = (r.parts || []).join("+"); o.側 = r.side;
+    o.骨骼 = r.el; o.骨骼中文 = EL.get(r.el)?.zh || ""; o.掌蹠骨序 = r.digit === "?" ? "不明" : r.digit || ""; o.新增部位 = r.el && !EL.has(r.el) ? "v" : "";
+    o.細分部位 = (r.parts || []).join("+"); o.側 = r.side;
     return o;
   };
   const sorted = records.slice().sort((a, b) => a.code.localeCompare(b.code) || a.seq - b.seq);
@@ -2201,7 +2260,7 @@ function buildCSVs(records, pad, fields) {
     }
   }
   const idc = ["流水號", "遺址", "記錄者", ...CC, "門", ...RANKS, "辨識單元", "學名", "疑似"];
-  const elc = ["骨骼", "骨骼中文", "細分部位", "側"];
+  const elc = ["骨骼", "骨骼中文", "掌蹠骨序", "新增部位", "細分部位", "側"];
   const head = [...idc, "體型", "體型依據", ...elc, "Z1", "Z2", "Z3", "Z4", "Z5", "Z6", "Z7", "Z8", "近端癒合", "遠端癒合",
     "帶齒", "上下顎", "齒位", "性別", "燒炙範圍", "燒炙顏色", "燒炙疑似", "切砍", "切砍疑似", "切砍zone", "切砍位置", "啃咬", "啃咬疑似", "啃咬zone", "啃咬位置",
     "病理", "照片", "照片檔名", "可拼合", "待查核", "查核說明", "備註", "編碼摘要", "3D模型", "建立時間", "更新時間", "碎片", "Qty", "重量"];
@@ -2335,9 +2394,9 @@ $("btnCSV").onclick = async () => {
   await writeFiles("獸骨紀錄_匯出_" + stamp(), files, $("ioMsg"));
   if (missing.length) $("ioMsg").insertAdjacentHTML("beforeend", `<p class="warnline">有 ${missing.length} 張照片找不到檔案：${missing.map(esc).join("、")}</p>`);
 };
-/* 完整備份：沒有照片時是 JSON（舊版也能匯入）；有照片時是 zip（備份.json＋照片資料夾） */
+/* 匯出紀錄（JSON）：沒有照片時是 JSON（舊版也能匯入）；有照片時是 zip（備份.json＋照片資料夾；zip 內的檔名沿用舊版，讓舊版也能匯入） */
 async function makeBackup(records) {
-  const ents = photoEntries(records, LOCAL_PAD), base = `獸骨紀錄_備份_${S.current || "未設定"}_${stamp()}`;
+  const ents = photoEntries(records, LOCAL_PAD), base = `獸骨紀錄_${S.current || "未設定"}_${stamp()}`;
   if (!ents.length) return { blob: new Blob([exportJSON(records)], { type: "application/json" }), name: base + ".json" };
   const json = exportJSON(records, { photoFiles: Object.fromEntries(ents.map((e) => [e.id, e.path])) });
   return { blob: makeZip([{ path: "備份.json", text: json }].concat(await photoFiles(ents, localBlob))), name: base + ".zip" };
@@ -2347,7 +2406,7 @@ $("btnJSON").onclick = async () => {
   const b = await makeBackup(S.records);
   if (!(await deliver(b.blob, b.name))) { $("ioMsg").innerHTML = `<p class="note">已取消。</p>`; return; }
   S.lastBackupN = S.records.length; DB.set("lastBackupN", S.lastBackupN); banners(); renderIO();
-  $("ioMsg").innerHTML = `<p>已輸出完整備份「${esc(b.name)}」（${S.records.length} 筆）。</p>`;
+  $("ioMsg").innerHTML = `<p>已匯出紀錄「${esc(b.name)}」（${S.records.length} 筆）。</p>`;
 };
 function renderIO() {
   const by = {};
@@ -2377,7 +2436,7 @@ async function doBackup() {
   banners();
 }
 $("btnDir").onclick = async () => {
-  if (!window.showDirectoryPicker) { $("dirInfo").textContent = "這個瀏覽器不支援，請改用 Chrome 或 Edge；或定期按「下載完整備份」。"; return; }
+  if (!window.showDirectoryPicker) { $("dirInfo").textContent = "這個瀏覽器不支援，請改用 Chrome 或 Edge；或定期按「匯出紀錄（JSON）」。"; return; }
   try { S.dir = await window.showDirectoryPicker({ mode: "readwrite" }); S.dirOK = true; await DB.set("dir", S.dir); doBackup(); }
   catch (e) { /* 取消 */ }
 };
@@ -2390,7 +2449,7 @@ function banners() {
   if (!DB.ok) b.push(`這個瀏覽器無法存檔（可能是私密瀏覽模式）。關閉頁面前請務必到「匯出與合併」下載備份。`);
   if (S.dir && !S.dirOK) b.push(`自動備份暫停中。<button class="small" id="bnResume">恢復自動備份到「${esc(S.dir.name)}」</button>`);
   const unsaved = S.records.length - S.lastBackupN;
-  if (!S.dirOK && unsaved >= 30) b.push(`有 ${unsaved} 筆紀錄還沒有備份。<button class="small" id="bnBackup">下載完整備份</button>`);
+  if (!S.dirOK && unsaved >= 30) b.push(`有 ${unsaved} 筆紀錄還沒有備份。<button class="small" id="bnBackup">匯出紀錄（JSON）</button>`);
   if (S.swWaiting) b.push(`有新版本可以使用。<button class="small" id="bnUpdate">更新</button><span class="muted">（這一筆尚未儲存的內容會清除）</span>`);
   $("banners").innerHTML = b.map((x) => `<div class="banner">${x}</div>`).join("");
   if ($("bnUpdate")) $("bnUpdate").onclick = () => S.swWaiting.postMessage("skipWaiting");
@@ -2589,7 +2648,7 @@ if (navigator.storage && navigator.storage.persist) navigator.storage.persisted(
   taxSetup(); elSetup();
   fillForm(); showWho(); refreshLists(); renderSettings(); banners();
   if (!window.showDirectoryPicker || touch()) {
-    $("dirNote").textContent = "紀錄和照片存在這台裝置的瀏覽器裡。平板與手機無法自動備份到資料夾，請定期按「下載完整備份」，用「分享」存到雲端硬碟或傳給自己。累積 30 筆沒有備份時，畫面上方會提醒。";
+    $("dirNote").textContent = "紀錄和照片存在這台裝置的瀏覽器裡。平板與手機無法自動備份到資料夾，請定期按「匯出紀錄（JSON）」，用「分享」存到雲端硬碟或傳給自己。累積 30 筆沒有備份時，畫面上方會提醒。";
     $("dirRow").classList.add("hidden");
   }
   if (!S.current) await askRecorder();
