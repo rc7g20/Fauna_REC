@@ -1,0 +1,21 @@
+{
+  "format": "faunarec-models-index",
+  "version": 1,
+  "species": [
+    {
+      "name": "犬",
+      "models": 14,
+      "zones": 12
+    },
+    {
+      "name": "臺灣梅花鹿",
+      "models": 19,
+      "zones": 19
+    },
+    {
+      "name": "豬",
+      "models": 22,
+      "zones": 21
+    }
+  ]
+}
