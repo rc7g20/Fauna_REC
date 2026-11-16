@@ -486,6 +486,11 @@ dialog::backdrop{background:rgba(30,25,15,.45)}
     <section class="card"><h2>出土脈絡欄位</h2><div id="setCtx"></div><button class="small" id="btnCtxCfg2" type="button" style="margin-top:8px">選擇欄位</button></section>
     <section class="card"><h2>自訂測量項目</h2><p class="note" style="margin-top:0">在記錄畫面按「＋ 新增項目」加入的代碼，之後同一部位都會出現。</p><div id="setMeas"></div></section>
     <section class="card"><h2>新增的分類單元</h2><p class="note" style="margin-top:0">記錄時輸入、不在原清單中的分類單元。</p><div id="setTaxa"></div></section>
+    <section class="card" style="grid-column:1/-1"><h2>版本與離線檔案</h2>
+      <div id="appStatus" class="note" style="margin-top:0"></div>
+      <div class="row" style="margin-top:8px"><button class="small" id="btnRefetch" type="button">重新下載離線檔案</button></div>
+      <p class="note">物種名冊、參考圖或 3D 模型讀不到時使用：只清除這台裝置上「離線用的程式與圖檔副本」，再從網路重新下載。<b>紀錄、照片和設定不會被刪除。</b>需要連上網路。</p>
+    </section>
     <section class="card" style="grid-column:1/-1"><h2>關於本工具</h2>
       <p class="note" style="margin-top:0">本工具為研究團隊的<b>內部測試版本</b>，僅供受邀的測試人員使用。請勿將網址或檔案轉傳給測試團隊以外的人，也不得用於商業、教學、展示等公開活動。</p>
       <p class="note">工具中的參考圖取自已出版的文獻（von den Driesch 1976；Serjeantson 1996；Grant 1982；Lemoine et al. 2014；Bowen et al. 2016），版權屬於原作者與出版者，僅供記錄時對照使用，請勿另行擷取、轉載或散布。物種名稱資料來自臺灣物種名錄（TaiCOL）。</p>
@@ -1700,7 +1705,7 @@ const M3 = { index: null, share: [], sp: new Map(), gen: 0, adj: null, adjKey: "
 const P3 = { wrap: "z3Wrap", view: "z3View", msg: "z3Msg", note: "z3Note", V: null, key: "", hl: "", model: null };
 const LAYERS = { zones: { name: "保存部位" }, cut: { name: "切砍痕", text: "切", color: "#c0392b", hex: 0xc0392b }, gnaw: { name: "啃咬痕", text: "咬", color: "#2f6fb0", hex: 0x2f6fb0 } };
 async function init3D() {
-  try { const r = await fetch("3d/models/index.json"); if (r.ok) M3.index = await r.json(); } catch (e) { /* 沒有 3D 資料 */ }
+  try { const r = await fetch("3d/models/index.json"); if (r.ok) M3.index = await r.json(); else LOAD.m3 = "HTTP " + r.status; } catch (e) { LOAD.m3 = e.message; /* 沒有 3D 資料 */ }
   // 共用對照表（在 zone 設定工具的「共用設定」編輯）：哪些分類借用哪些物種的模型
   if (M3.index) try { const r = await fetch("3d/models/share.json"); if (r.ok) M3.share = (await r.json()).rules || []; } catch (e) { /* 沒有對照表 */ }
 }
@@ -2450,6 +2455,8 @@ function banners() {
   if (S.dir && !S.dirOK) b.push(`自動備份暫停中。<button class="small" id="bnResume">恢復自動備份到「${esc(S.dir.name)}」</button>`);
   const unsaved = S.records.length - S.lastBackupN;
   if (!S.dirOK && unsaved >= 30) b.push(`有 ${unsaved} 筆紀錄還沒有備份。<button class="small" id="bnBackup">匯出紀錄（JSON）</button>`);
+  if (location.protocol === "file:") b.push(`這是直接從資料夾開啟的檔案，瀏覽器不允許讀取物種名冊和 3D 模型。請改用 GitHub 的網址，或在電腦上執行「開啟記錄工具（測試）.bat」。`);
+  else if (!EXT.rows.length) b.push(`物種名冊沒有載入，學名查詢（例如 sus）無法使用。請到「設定」→「版本與離線檔案」查看，並按「重新下載離線檔案」。`);
   if (S.swWaiting) b.push(`有新版本可以使用。<button class="small" id="bnUpdate">更新</button><span class="muted">（這一筆尚未儲存的內容會清除）</span>`);
   $("banners").innerHTML = b.map((x) => `<div class="banner">${x}</div>`).join("");
   if ($("bnUpdate")) $("bnUpdate").onclick = () => S.swWaiting.postMessage("skipWaiting");
@@ -2579,11 +2586,38 @@ $("btnMerge").onclick = async () => {
 };
 
 /* ============================================================== 設定 */
+/* 版本與離線檔案：顯示實際載入了什麼，方便找出「物種名冊、圖、3D 讀不到」的原因 */
+const LOAD = { taxa: "", m3: "" };   // 載入失敗的原因
+async function renderStatus() {
+  const ok = (x) => `<span style="color:var(--accent)">✓ ${x}</span>`, bad = (x) => `<span class="errline">✗ ${x}</span>`;
+  let ver = "（沒有離線快取）", ctl = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+  try { const ks = (await caches.keys()).filter((k) => k.startsWith("faunarec-")); if (ks.length) ver = ks.map((k) => k.slice(9)).join("、"); } catch (e) { /* 不支援 */ }
+  let img = false;
+  try { img = await new Promise((res) => { const i = new Image(); i.onload = () => res(i.naturalWidth > 0); i.onerror = () => res(false); i.src = "img/zoneM_MC.png"; }); } catch (e) { /* */ }
+  const sp = M3.index ? (M3.index.species || []).length : 0;
+  $("appStatus").innerHTML = [
+    `網址：${esc(location.href.split("#")[0])}`,
+    `離線版本：${esc(ver)}${ctl ? "" : "（離線功能尚未啟用）"}`,
+    EXT.rows.length ? ok(`物種名冊（TaiCOL）：${EXT.rows.length.toLocaleString()} 筆`) : bad(`物種名冊沒有載入${LOAD.taxa ? "：" + esc(LOAD.taxa) : ""}（只能用內建的少數物種，學名查詢無效）`),
+    img ? ok("參考圖：正常") : bad("參考圖讀不到"),
+    sp ? ok(`3D 模型：${sp} 個物種${M3.share.length ? `，共用規則 ${M3.share.length} 條` : ""}`) : bad(`3D 模型沒有載入${LOAD.m3 ? "：" + esc(LOAD.m3) : ""}`),
+  ].join("<br>");
+}
+$("btnRefetch").onclick = async () => {
+  if (!navigator.onLine) { alert("目前沒有網路。請連上網路後再試。"); return; }
+  if (!confirm("清除離線用的程式與圖檔副本，並從網路重新下載？\n\n紀錄、照片和設定不會被刪除。這一筆尚未儲存的內容會清除。")) return;
+  try {
+    for (const k of await caches.keys()) if (k.startsWith("faunarec-")) await caches.delete(k);
+    if (navigator.serviceWorker) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+  } catch (e) { /* 盡量清除 */ }
+  location.reload();
+};
 function renderSettings() {
   $("setRecorders").innerHTML = `<p style="margin-top:0">遺址：<b>${esc(S.site || "（未設定）")}</b> <button class="link" type="button" onclick="askSite()">更改</button></p>` + (Object.keys(S.recorders).length ? `<table><tr><th>名字</th><th>流水號開頭</th><th>下一個流水號</th></tr>${Object.entries(S.recorders).map(([n, c]) => `<tr><td>${esc(n)}${n === S.current ? ' <span class="flag">使用中</span>' : ""}</td><td class="mono">${esc(c)}</td><td class="mono">${fmtSerial(c, (S.counters[c] || 0) + 1)}</td></tr>`).join("")}</table>` : `<p class="note">尚未設定。</p>`);
   $("setCtx").innerHTML = ctxOn().length ? `<p style="margin:0">${ctxOn().map((x) => esc(x.name) + (x.req ? "（必填）" : "")).join("、")}</p>` : `<p class="note">尚未選擇。</p>`;
   const cm = Object.entries(S.customMeasures).filter(([, a]) => a.length);
   $("setMeas").innerHTML = cm.length ? `<table><tr><th>部位</th><th>自訂代碼</th></tr>${cm.map(([k, a]) => `<tr><td>${esc(k.replace("|", " / "))}</td><td>${a.map((c) => `<span class="mono">${esc(c)}</span> <button class="link" data-rmkey="${esc(k)}" data-rmcode="${esc(c)}">移除</button>`).join("　")}</td></tr>`).join("")}</table>` : `<p class="note">目前沒有。</p>`;
+  renderStatus();
   $("setTaxa").innerHTML = S.customTaxa.length ? `<table><tr>${RANKS.map((r) => `<th>${r}</th>`).join("")}<th></th></tr>${S.customTaxa.map((t, i) => `<tr>${t.map((x) => `<td>${esc(x)}</td>`).join("")}<td><button class="link" data-rmtax="${i}">移除</button></td></tr>`).join("")}</table>` : `<p class="note">目前沒有。</p>`;
 }
 $("tab-set").addEventListener("click", async (e) => {
@@ -2641,7 +2675,7 @@ if (navigator.storage && navigator.storage.persist) navigator.storage.persisted(
   S.site = await g("site", "");
   showSite();
   // 物種名冊（TaiCOL）；讀不到時（例如直接開檔案）只用內建清單
-  try { const x = await (await fetch("taxa.json")).json(); if (x && x.rows) EXT = aliasTaxa(x); } catch (e) { /* 內建清單 */ }
+  try { const r = await fetch("taxa.json"); if (!r.ok) throw new Error("HTTP " + r.status); const x = await r.json(); if (x && x.rows) EXT = aliasTaxa(x); else LOAD.taxa = "格式不對"; } catch (e) { LOAD.taxa = e.message; /* 內建清單 */ }
   buildTaxa();
   await init3D();
   F = blank(await g("lastCtx", null));
